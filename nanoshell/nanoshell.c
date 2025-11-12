@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/08 13:36:40 by jadelgad         ###   ########.fr       */
+/*   Updated: 2025/11/12 15:18:55 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -437,7 +437,11 @@ int	main(int ac, char **av, char **ev)
 			waitpid(pid1, NULL, 0);
 			free(line);
 		} */
-        
+		
+
+        t_token	*tokens = tokenizer(line);
+		tokens_print_simple(tokens);
+
 	}
 	return (0);
 }

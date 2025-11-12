@@ -1,33 +1,41 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   basic_utils.c                                      :+:      :+:    :+:   */
+/*   parse_quotes.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/08 13:57:34 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/12 14:36:53 by jadelgad         ###   ########.fr       */
+/*   Created: 2025/11/12 13:50:51 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/12 14:55:05 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "nanoshell.h"
 
-int	is_space(char c)
+int	parse_single_quote(t_buf *buf, const char *line, size_t *i, size_t len)
 {
-	if (c == ' ' || (c >= 9 && c <= 13))
-		return (1);
+	while (*i < len && line[*i] != '\'')
+	{
+		if (buf_append_char(buf, line[*i]) < 0)
+			return (-1);
+		(*i)++;
+	}
+	if (*i >= len)
+		return (-1);
+	(*i)++;
 	return (0);
 }
 
-int	is_operator(char c)
+int	parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len)
 {
-	if (c == '<' || c == '<' || c == '|')
-		return (1);
+	while (*i < len && line[*i] != '"')
+	{
+		if (buf_append_char(buf, line[*i]) < 0)
+			return (-1);
+		(*i)++;
+	}
+	if (*i >= len)
+		return (-1);
+	(*i)++;
 	return (0);
-}
-
-void    skip_spaces(const char *line, size_t *i, size_t len)
-{
-    while (*i < len && is_space(line[*i]))
-        (*i)++;
 }

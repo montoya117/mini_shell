@@ -6,12 +6,13 @@
 #    By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/08 13:07:06 by jadelgad          #+#    #+#              #
-#    Updated: 2025/11/08 16:30:32 by jadelgad         ###   ########.fr        #
+#    Updated: 2025/11/12 15:08:19 by jadelgad         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -g
+LDFLAGS = -lreadline -lncurses
 NAME = nanoshell
 
 LIBFT_DIR = LIBFT2
@@ -19,7 +20,7 @@ LIBFT = $(LIBFT_DIR)/libft.a
 LIBFT_INC = -I$(LIBFT_DIR)
 
 #_______	sources		________#
-SRC = nanoshell.c tokenizer.c basic_utils.c tokens_utils.c buffer_utils.c parse_operator.c
+SRC = nanoshell.c tokenizer.c basic_utils.c token_utils.c buffer_utils.c parse_operator.c parse_quotes.c parse_words.c
 OBJ = $(SRC:.c=.o)
 
 
@@ -29,7 +30,7 @@ OBJ = $(SRC:.c=.o)
 all: $(NAME)
 
 $(NAME): $(LIBFT) $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) $(LDFLAGS) -o $(NAME)
 	@echo "$(NAME) COMPILED "
 
 $(LIBFT):

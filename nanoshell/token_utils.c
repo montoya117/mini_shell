@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/08 14:35:49 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/08 15:22:19 by jadelgad         ###   ########.fr       */
+/*   Updated: 2025/11/12 14:40:08 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ void	token_append(t_token **head, t_token *node)
 		*head = node;
 		return ;
 	}
-	cur = head;
+	cur = *head;
 	while (cur->next)
 		cur = cur->next;
 	cur->next = node;
@@ -59,4 +59,15 @@ void	free_tokens(t_token *head)
 		free(cur);
 		cur = n;
 	}
+}
+
+t_token	*make_error_token_from_ctx(size_t start, const char *msg, t_word_ctx *ctx)
+{
+	char	*m;
+
+	free(ctx->buf.data);
+	m = ft_strdup(msg);
+	if (!m)
+		return (NULL);
+	return (token_new(TOKEN_ERROR, m, QT_NONE, (int)start));
 }

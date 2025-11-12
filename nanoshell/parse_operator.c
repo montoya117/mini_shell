@@ -30,24 +30,25 @@ static t_token *handle_less(const char *line, size_t *i, size_t len, int pos)
         *i += 2;
         return (token_new(TOKEN_HEREDOC, ft_strdup("<<"), QT_NONE, pos));
     }
-    *i += 1
-    return ((token_new(TOKEN_REDIR_IN, ft_strdup("<"), QT_NONE, pos));
+    *i += 1;
+    return (token_new(TOKEN_REDIR_IN, ft_strdup("<"), QT_NONE, pos));
 }
 
 static t_token *handle_pipe(const char *line, size_t *i, size_t len, int pos)
 {
     (void)line;
+	(void)len;
     *i += 1;
     return (token_new(TOKEN_PIPE, ft_strdup("|"), QT_NONE, pos));
 }
 
 t_token *parse_operator(const char *line, size_t *i, size_t len)
 {
-    int pos;
+    size_t pos;
 
     if (!line || !i)
         return (NULL);
-    pos = (int)i;
+    pos = *i;
     if (line[*i] == '>')
         return (handle_greater(line, i, len, pos));
     if (line[*i] == '<')

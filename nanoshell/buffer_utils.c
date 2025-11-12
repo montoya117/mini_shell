@@ -6,13 +6,13 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/08 15:51:26 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/08 16:27:23 by jadelgad         ###   ########.fr       */
+/*   Updated: 2025/11/12 15:09:49 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "nanoshell.h"
 
-void	buff_init(t_buf *b)
+void	buf_init(t_buf *b)
 {
 	b->data = NULL;
 	b->len = 0;
@@ -23,17 +23,19 @@ void	buf_free(t_buf *b)
 {
 	if (!b)
 		return ;
-	free(b->data)
+	free(b->data);
 	b->data = NULL;
 	b->len = 0;
-	b_cap = 0;
+	b->cap = 0;
 }
 
 static size_t	next_capacity(size_t cur, size_t min_needed)//calcular la siguente  capacidad
 {
 	size_t	ncap;
 
-	if (cur == 20)
+	if (min_needed == 0)
+		return (0);
+	if (cur == 0)
 		ncap = 32;
 	else
 	{
@@ -41,26 +43,28 @@ static size_t	next_capacity(size_t cur, size_t min_needed)//calcular la siguente
 	}
 	while (ncap < min_needed)
 	{
-		if (ncap <= cur)
+		if (ncap > SIZE_MAX / 2)
 		{
-			ncap = min_needed;
-			break ;
+			ncap = min_needed;//si doblar espacio causa over
+			break ;//      le adjudicamos el min necesario
 		}
-		ncap *= 2
+		ncap *= 2;
 	}
+	if (ncap < min_needed)
+		ncap = min_needed;
 	return (ncap);
 }
 
-int	buff_ensure_capacity(t_buf *b, size_t min_needed)//aumenta tamanio buffer
+int	buf_ensure_capacity(t_buf *b, size_t min_needed)//aumenta tamanio buffer
 {
 	size_t	ncap;
 	char	*n;
 
 	if (!b)
 		return (-1);
-	ncap = next_capacity(b->cap, min_needed);
 	if (b->cap >= min_needed)
 		return (0);
+	ncap = next_capacity(b->cap, min_needed);
 	n = malloc(ncap);
 	if (!n)
 		return (-1);
@@ -76,7 +80,7 @@ int	buff_ensure_capacity(t_buf *b, size_t min_needed)//aumenta tamanio buffer
 	return (0);
 }
 
-int	buff_append_char(t_buf *b, char c)//aniade un caracter al buffer asegura espacio para char + '\\0'
+int	buf_append_char(t_buf *b, char c)//aniade un caracter al buffer asegura espacio para char + '\\0'
 {
 	size_t	required;
 
@@ -88,4 +92,17 @@ int	buff_append_char(t_buf *b, char c)//aniade un caracter al buffer asegura esp
 	b->data[b->len++] = c;
 	b->data[b->len] = '\0';
 	return (0);
+}
+
+char	*buf_release(t_buf *buf)
+{
+	char *ret;
+
+	if (!buf)
+		return (NULL);
+	ret = buf->data;
+	buf->data = NULL;
+	buf->len = 0;
+	buf->cap = 0;
+	return (ret);
 }
