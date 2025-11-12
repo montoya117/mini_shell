@@ -30,7 +30,29 @@
 # include <limits.h>
 # include <stdint.h>
 # include "libft.h"
+# include <errno.h>
+# include <string.h>
+# include <signal.h>
+# include <readline/readline.h>
+# include <readline/history.h>
+# include <sys/types.h>
+# include <sys/wait.h>
 
+#define Y	"\033[1;33m"
+#define G	"\033[1;32m"
+#define C	"\033[1;36m"
+#define RED	"\033[1;31m"
+#define RST	"\033[0m"
+
+#define DEL "\n\t \v\f\r"
+
+extern volatile sig_atomic_t g_signal_received;
+
+typedef struct s_data {
+	int		status;
+	char	*cmd;
+	char	*exit;
+}	t_data;
 
 typedef enum e_token_type
 {
@@ -81,9 +103,9 @@ typedef struct s_word_ctx
 int		is_space(char c);
 int		is_operator(char c);
 void    skip_spaces(const char *line, size_t *i, size_t len);
+
 //____________ TOKENIZER.CT
 t_token	*tokenizer(const char *line);
-
 
 //____________	TOKENS_UTILS.C
 
@@ -91,6 +113,12 @@ t_token *token_new(t_token_type type, char *text, t_quote_type qt, int pos);
 void    token_append(t_token **head, t_token *node);
 void    free_tokens(t_token *head);
 t_token *make_error_token_from_ctx(size_t start, const char *msg, t_word_ctx *ctx);
+
+//____________	DISPLAY_TOKENS.C
+
+const char	*display_text_for_token(const t_token *t);
+void	tokens_print_simple(const t_token *head);
+void	tokens_print_simple_array(const t_token **arr, size_t count);
 
 //_________		BUFFER_UTILS.C
 
@@ -112,6 +140,8 @@ t_token *parse_word(const char *line, size_t *i, size_t len);
 int		parse_single_quote(t_buf *buf, const char *line, size_t *i, size_t len);
 int parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len);
 
+//_________		SIGNALS.C
+void	setup_signals(void);
 
 #endif
 

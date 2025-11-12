@@ -1,56 +1,44 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2025/11/08 13:07:06 by jadelgad          #+#    #+#              #
-#    Updated: 2025/11/12 15:08:19 by jadelgad         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
-CC = cc
-CFLAGS = -Wall -Wextra -Werror -g
-LDFLAGS = -lreadline -lncurses
-NAME = nanoshell
-
+NAME    = minishell
+HEADER  = includes/nanoshell.h
+CC      = cc
+CFLAGS  = -Wall -Werror -Wextra -g -Iincludes -ILIBFT2 
+LDLIBS = -lreadline -lhistory -lncurses
+OBJ_DIR = obj
+SRC_DIR = src
 LIBFT_DIR = LIBFT2
-LIBFT = $(LIBFT_DIR)/libft.a
-LIBFT_INC = -I$(LIBFT_DIR)
+LIBFT_A = $(LIBFT_DIR)/libft.a
 
-#_______	sources		________#
-SRC = nanoshell.c tokenizer.c basic_utils.c token_utils.c buffer_utils.c parse_operator.c parse_quotes.c parse_words.c
-OBJ = $(SRC:.c=.o)
+SRCS    = $(wildcard $(SRC_DIR)/*.c)
+OBJS    = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
+all: libft $(NAME)
 
+libft:
+	@echo "$(BLUE)Compiling libft...$(RESET)"
+	@make -C $(LIBFT_DIR)
 
-#_______	RULES		_______#
-
-all: $(NAME)
-
-$(NAME): $(LIBFT) $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) $(LDFLAGS) -o $(NAME)
-	@echo "$(NAME) COMPILED "
-
-$(LIBFT):
-	@$(MAKE) -C $(LIBFT_DIR)
-
-%.o: %.c nanoshell.h
-	$(CC) $(CFLAGS) -I. $(LIBFT_INC) -c $< -o $@
-	@echo "COMPILING...$<"
+$(NAME): $(OBJS) $(LIBFT_A)
+	@echo "$(BLUE)Linking $(NAME)...$(RESET)"
+	@$(CC) $(CFLAGS) $(OBJS) -L$(LIBFT_DIR) -lft $(LDLIBS) -o $(NAME)
+	@echo "$(GREEN)✓ $(NAME) compiled successfully!$(RESET)"
+	
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADER)
+	@mkdir -p $(dir $@)
+	@echo "$(YELLOW)Compiling $<...$(RESET)"
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	@rm -f $(OBJ)
-	@$(MAKE) clean -C $(LIBFT_DIR)
-	@echo "OBJECTS CLEANED"
+	@echo "$(RED)Cleaning object files...$(RESET)"
+	@rm -rf $(OBJ_DIR)
+	@make -C $(LIBFT_DIR) clean
 
-fclean:
+fclean: clean
+	@echo "$(RED)Removing $(NAME)...$(RESET)"
 	@rm -f $(NAME)
-	@$(MAKE) fclean -C $(LIBFT_DIR)
-	@echo "ALL CLEANED"
+	@make -C $(LIBFT_DIR) fclean
+	@echo "$(GREEN)✓ Full clean completed!$(RESET)"
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re libft
 
