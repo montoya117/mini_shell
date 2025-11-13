@@ -1,4 +1,33 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   display_token.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/13 13:02:42 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/13 13:15:50 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "nanoshell.h"
+
+static const char *type_to_str(t_token_type t)
+{
+    if (t == TOKEN_WORD) return ("WORD");
+    if (t == TOKEN_PIPE) return ("PIPE");
+    if (t == TOKEN_REDIR_IN) return ("REDIR_IN");
+    if (t == TOKEN_REDIR_OUT) return ("REDIR_OUT");
+    if (t == TOKEN_REDIR_APPEND) return ("REDIR_APPEND");
+    if (t == TOKEN_HEREDOC) return ("HEREDOC");
+    if (t == TOKEN_AND) return ("AND");
+    if (t == TOKEN_OR) return ("OR");
+    if (t == TOKEN_LPAREN) return ("LPAREN");
+    if (t == TOKEN_RPAREN) return ("RPAREN");
+    if (t == TOKEN_EOF) return ("EOF");
+    if (t == TOKEN_ERROR) return ("ERROR");
+    return ("UNKNOWN");
+}
 
 const char *display_text_for_token(const t_token *t)
 {
@@ -16,6 +45,10 @@ const char *display_text_for_token(const t_token *t)
 		case TOKEN_REDIR_APPEND: return ">>";
 		case TOKEN_REDIR_IN: return "<";
 		case TOKEN_HEREDOC: return "<<";
+		case TOKEN_AND: return "&&";
+		case TOKEN_OR: return "||";
+		case TOKEN_LPAREN: return "(";
+		case TOKEN_RPAREN: return ")";
 		case TOKEN_EOF: return "EOF";
 		case TOKEN_ERROR: return "ERROR";
 		case TOKEN_WORD:
@@ -33,8 +66,7 @@ void tokens_print_simple(const t_token *head)
 
 	while (cur)
 	{
-		const char *txt = display_text_for_token(cur);
-		printf("token%d [%s]\n", idx, txt);
+		printf("token%d [%s] type=%s pos=%zu\n", idx, display_text_for_token(cur), type_to_str(cur->type), cur->pos);
 		cur = cur->next;
 		idx++;
 	}
@@ -51,3 +83,4 @@ void tokens_print_simple_array(const t_token **arr, size_t count)
 		printf("token%zu [%s]\n", i + 1, txt);
 	}
 }
+

@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/08 13:57:34 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/12 14:36:53 by jadelgad         ###   ########.fr       */
+/*   Updated: 2025/11/13 14:30:04 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ int	is_space(char c)
 
 int	is_operator(char c)
 {
-	if (c == '<' || c == '<' || c == '|')
+	if (c == '<' || c == '>' || c == '|' ||
+		c == '&' || c == '(' || c == ')')
 		return (1);
 	return (0);
 }
@@ -30,4 +31,14 @@ void    skip_spaces(const char *line, size_t *i, size_t len)
 {
     while (*i < len && is_space(line[*i]))
         (*i)++;
+}
+
+void *safe_malloc(size_t size) 
+{
+    void *ptr = malloc(size);
+    if (!ptr) {
+        perror("Malloc failed");
+        exit(EXIT_FAILURE);
+    }
+    return ptr;
 }

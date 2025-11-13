@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   nanoshell.c                                        :+:      :+:    :+:   */
+/*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -12,16 +12,25 @@
 
 #include "nanoshell.h"
 
-static void print_banner(void)
+static void	print_banner(void)
 {
-    printf("\n");
-    printf(C);
-    printf(" ▖▗ ▖  ▖  ▄▖▌   ▜ ▜ \n");
-    printf(" ▌▚▘▛▖▞▌  ▚ ▛▌█▌▐ ▐ \n");
-    printf("▙▌▚▌▌▝ ▌  ▄▌▌▌▙▖▐▖▐▖\n");
-    printf("                   \n");
-    printf("                   \n");
-    printf(RST"\n");
+	printf("\n");
+	printf(C);
+	printf("         ██╗       ██╗       ███╗   ███╗    \n");
+	printf("         ██║       ██║       ████╗ ████║    \n");
+	printf("         ██║    ████████╗    ██╔████╔██║    \n");
+	printf("    ██   ██║    ██╔═██╔═╝    ██║╚██╔╝██║    \n");
+	printf("    ╚█████╔╝    ██████║      ██║ ╚═╝ ██║    \n");
+	printf("     ╚════╝     ╚═════╝      ╚═╝     ╚═╝    \n");
+	printf("                                             \n");
+	printf("    ███████╗██╗  ██╗███████╗██╗     ██╗     \n");
+	printf("    ██╔════╝██║  ██║██╔════╝██║     ██║     \n");
+	printf("    ███████╗███████║█████╗  ██║     ██║     \n");
+	printf("    ╚════██║██╔══██║██╔══╝  ██║     ██║     \n");
+	printf("    ███████║██║  ██║███████╗███████╗███████╗\n");
+	printf("    ╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n");
+	printf("                                             \n");
+	printf(RST"\n");
 }
 
 int	main(int ac, char **av, char **ev)

@@ -48,12 +48,16 @@
 
 extern volatile sig_atomic_t g_signal_received;
 
+//________________ STRUCTS
+
+// DATA STRUCT
 typedef struct s_data {
 	int		status;
 	char	*cmd;
 	char	*exit;
 }	t_data;
 
+// TOKEN STRUCTS
 typedef enum e_token_type
 {
 	TOKEN_WORD,
@@ -62,6 +66,10 @@ typedef enum e_token_type
 	TOKEN_REDIR_OUT,
 	TOKEN_REDIR_APPEND,
 	TOKEN_HEREDOC,
+	TOKEN_AND,
+	TOKEN_OR,
+	TOKEN_LPAREN,
+	TOKEN_RPAREN,
 	TOKEN_EOF,
 	TOKEN_ERROR
 }	t_token_type;
@@ -74,7 +82,7 @@ typedef enum e_quote_type
 	QT_MIXED
 }	t_quote_type;
 
-/* struct mínimo usado por las funciones de impresión */
+
 typedef struct s_token
 {
 	t_token_type	type;
@@ -84,6 +92,7 @@ typedef struct s_token
 	struct s_token	*next;
 }	t_token;
 
+// BUFFER STRUCKS
 typedef struct s_buf
 {
     char    *data;
@@ -98,12 +107,39 @@ typedef struct s_word_ctx
 	int		seen_double;
 }	t_word_ctx;
 
-//____________	BASIC_UTILS.C	____________
+// AST STRUCTS
+typedef enum
+{
+	AST_COMMAND,
+	AST_PIPE,
+	AST_REDIRECT,
+	AST_AND,
+	AST_OR,
+	AST_SUBSHELL
+}	AST_TYPE;
 
-int		is_space(char c);
-int		is_operator(char c);
-void    skip_spaces(const char *line, size_t *i, size_t len);
+typedef struct s_ast_list
+{
+	struct s_ast		*node;
+	struct s_ast_list	*next;
+}	t_ast_list;
 
+typedef struct s_ast
+{
+	AST_TYPE		type;
+	struct s_ast	*left; // for  && ||  and redirections
+	struct s_ast	*right; // for && || and redirections
+	char			**argv; // for commands
+	char			*file; // for redirections
+	int				redirect_type; // for rediretions
+	t_ast_list		*children; // for pipe chain
+}	t_ast;
+
+
+
+// FUNCTIONS
+
+// LEXER
 //____________ TOKENIZER.CT
 t_token	*tokenizer(const char *line);
 
@@ -115,33 +151,56 @@ void    free_tokens(t_token *head);
 t_token *make_error_token_from_ctx(size_t start, const char *msg, t_word_ctx *ctx);
 
 //____________	DISPLAY_TOKENS.C
-
 const char	*display_text_for_token(const t_token *t);
 void	tokens_print_simple(const t_token *head);
 void	tokens_print_simple_array(const t_token **arr, size_t count);
 
-//_________		BUFFER_UTILS.C
+//________      TOKEN_OPERATOR.C
+t_token *parse_operator(const char *line, size_t *i, size_t len);
 
+//________		TOKEN_WORDS.C
+t_token *parse_word(const char *line, size_t *i, size_t len);
+
+//________		TOKEN_QUOTES.C
+int		parse_single_quote(t_buf *buf, const char *line, size_t *i, size_t len);
+int		parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len);
+
+//_________		BUFFER_UTILS.C
 void    buf_init(t_buf *b);
 void    buf_free(t_buf *b);
 int		buf_ensure_capacity(t_buf *b, size_t min_needed);
 int		buf_append_char(t_buf *b, char c);
 char    *buf_release(t_buf *buf);//habra q moverla de este archivo, ya le buscare sitio...
 
-
-//________      PARSE_OPERATOR.C
-t_token *parse_operator(const char *line, size_t *i, size_t len);
-
-
-//________		PARSE_WORDS.C
-t_token *parse_word(const char *line, size_t *i, size_t len);
-
-//________		PARSE_QUOTES.C
-int		parse_single_quote(t_buf *buf, const char *line, size_t *i, size_t len);
-int parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len);
-
 //_________		SIGNALS.C
 void	setup_signals(void);
+
+// PARSER
+// AST_TREE
+
+//__________    PARSER.C
+
+//__________    AST_INIT.C
+t_ast	*ast_new_command(char **tokens);
+t_ast	*ast_new_pipe(t_ast_list *children);
+t_ast	*ast_new_and(t_ast *left, t_ast *right);
+t_ast	*ast_new_or(t_ast *left, t_ast *right);
+t_ast	*ast_new_subshell(t_ast *child);
+
+//___________   AST_UTILS.C
+t_ast_list *ast_list_new(t_ast *node);
+t_ast_list *ast_list_append(t_ast_list *head, t_ast *node);
+int			ast_count_args(char **argv);
+void		ast_free(t_ast *node);
+void		ast_list_free(t_ast_list *list);
+
+
+//____________	BASIC_UTILS.C	____________
+int		is_space(char c);
+int		is_operator(char c);
+void    skip_spaces(const char *line, size_t *i, size_t len);
+void	*safe_malloc(size_t size);
+
 
 #endif
 
