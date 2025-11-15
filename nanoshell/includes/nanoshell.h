@@ -41,6 +41,7 @@
 #define Y	"\033[1;33m"
 #define G	"\033[1;32m"
 #define C	"\033[1;36m"
+#define M	"\033[1;35m"  
 #define RED	"\033[1;31m"
 #define RST	"\033[0m"
 
@@ -175,14 +176,19 @@ char    *buf_release(t_buf *buf);//habra q moverla de este archivo, ya le buscar
 //_________		SIGNALS.C
 void	setup_signals(void);
 
-// PARSER
-// AST_TREE
+//__________    PARSER
 
 //__________    PARSER.C
+t_ast   *parser(t_token *tokens);
 
+//__________    PARSER_COMMANDS.C
+t_ast *parser_commands(t_token *tokens);
+
+//__________    AST_TREE
 //__________    AST_INIT.C
 t_ast	*ast_new_command(char **tokens);
 t_ast	*ast_new_pipe(t_ast_list *children);
+t_ast	*ast_new_redirect(t_ast *cmd, char *file, int redirect_type);
 t_ast	*ast_new_and(t_ast *left, t_ast *right);
 t_ast	*ast_new_or(t_ast *left, t_ast *right);
 t_ast	*ast_new_subshell(t_ast *child);
@@ -191,9 +197,22 @@ t_ast	*ast_new_subshell(t_ast *child);
 t_ast_list *ast_list_new(t_ast *node);
 t_ast_list *ast_list_append(t_ast_list *head, t_ast *node);
 int			ast_count_args(char **argv);
+
+//___________   AST_PRINTING.C
+const char *ast_to_string(const AST_TYPE type);
+void 		ast_print(const t_ast *root, int indent);
+
+//___________   AST_ERROR.C
 void		ast_free(t_ast *node);
 void		ast_list_free(t_ast_list *list);
+void		ast_parser_error(const char *message, t_token *token);
+// TO MOVE
+int			ft_strlen_const(const char *str); // TODO HEY HEY !!
 
+//___________   AST_TOKEN_UTILS.C
+t_token		*token_next_word(t_token *token);
+t_token		*token_skip_until(t_token *token, t_token_type type);
+// ___________  UTILS
 
 //____________	BASIC_UTILS.C	____________
 int		is_space(char c);

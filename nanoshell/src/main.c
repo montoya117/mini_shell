@@ -90,11 +90,19 @@ int	main(int ac, char **av, char **ev)
 			free(line);
 			break ;
 		}
-		// tokeniser test
+		// tokeniser
 		t_token	*tokens = tokenizer(line);
-		tokens_print_simple(tokens);
+		tokens_print_simple(tokens); // print for test
 		
-		// Your parser/executor calls...
+		 // Test commands only 
+		 t_ast *cmd = parser_commands(tokens);
+		 if (cmd)
+		 {
+			ast_print(cmd, 0);
+			ast_free(cmd);
+		 } 
+		// free stufff
+		free_tokens(tokens);
         free(line);
         
 	}
