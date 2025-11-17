@@ -71,6 +71,7 @@ typedef enum e_token_type
 	TOKEN_OR,
 	TOKEN_LPAREN,
 	TOKEN_RPAREN,
+	TOKEN_EXPANSION,
 	TOKEN_EOF,
 	TOKEN_ERROR
 }	t_token_type;

@@ -1,43 +1,65 @@
 
 /*
-// Assumes 'tok' is the start of your token list
-while (tok) {
-    if (tok->type == TOKEN_WORD) {
-        // Handle words: gather into argv array for commands
-        // e.g., add tok->text to current command's argument list
-    } 
-    else if (tok->type == TOKEN_PIPE) {
-        // Handle PIPE: finish current command, create AST_PIPE node
-        // e.g., set up left/right children for piping
-    }
-    else if (
-        tok->type == TOKEN_REDIR_IN ||
-        tok->type == TOKEN_REDIR_OUT ||
-        tok->type == TOKEN_REDIR_APPEND ||
-        tok->type == TOKEN_HEREDOC) {
-        // Handle I/O redirection: attach filename, set redirect type
-    }
-    else if (tok->type == TOKEN_AND || tok->type == TOKEN_OR) {
-        // Handle logical: create AST_AND/AST_OR nodes
-    }
-    else if (tok->type == TOKEN_LPAREN) {
-        // Handle possible subshell start (advanced)
-    }
-    else if (tok->type == TOKEN_RPAREN) {
-        // Handle possible subshell end (advanced)
-    }
-    else if (tok->type == TOKEN_EOF) {
-        // End of parsing
-        break; // or return your AST root
-    }
-    else if (tok->type == TOKEN_ERROR) {
-        // Handle parse error: call ast_parser_error and abort/skip
-        ast_parser_error("Unexpected token", tok);
-        break;
-    }
-    // Optionally handle other token types or unexpected tokens here
-    tok = tok->next;
+t_ast *parser(t_token **ptokens)
+{
+    return parse_logical(ptokens);
 }
+
+t_ast *parse_logical(t_token **ptokens)
+{
+    // Calls parse_pipe() and joins nodes with AST_AND/AST_OR
+}
+
+t_ast *parse_pipe(t_token **ptokens)
+{
+    // Calls parse_simple_command_or_subshell() and joins with AST_PIPE
+}
+
+t_ast *parse_simple_command_or_subshell(t_token **ptokens)
+{
+    if (*ptokens && (*ptokens)->type == TOKEN_LPAREN)
+        return parser_subshell(ptokens);
+    else
+        return parser_commands(ptokens);
+}
+
+t_ast *parser_subshell(t_token **ptokens)
+{
+    // Skips '(', recurses with parser(), asserts ')',
+    // returns AST_SUBSHELL node
+}
+
+
+t_ast *parser(t_token **ptokens)
+{
+    return parse_logical(ptokens);
+}
+
+t_ast *parse_logical(t_token **ptokens)
+{
+    t_ast *left = parse_pipe(ptokens);
+    while (*ptokens && ((*ptokens)->type == TOKEN_AND || (*ptokens)->type == TOKEN_OR)) {
+        t_token_type op = (*ptokens)->type;
+        *ptokens = (*ptokens)->next;
+        t_ast *right = parse_pipe(ptokens);
+        left = (op == TOKEN_AND) ? ast_new_and(left, right) : ast_new_or(left, right);
+    }
+    return left;
+}
+
+t_ast *parse_pipe(t_token **ptokens)
+{
+    t_ast *left = parser_commands(ptokens);
+    while (*ptokens && (*ptokens)->type == TOKEN_PIPE) {
+        *ptokens = (*ptokens)->next;
+        t_ast *right = parser_commands(ptokens);
+        left = ast_new_pipe(left, right);
+    }
+    return left;
+}
+
+// parser_commands: as you now have it
+
 
 */
 
