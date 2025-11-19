@@ -1,0 +1,1702 @@
+
+/*
+// Main AST node for shell commands, pipes, redirects, logic, subshells
+typedef struct s_ast {
+    AST_TYPE type;          // What type of AST node this is
+
+    // For binary nodes (AND, OR, REDIRECT, SUBSHELL, sometimes PIPE)
+    struct s_ast *left;    // Left child:
+                           //  - AST_AND / AST_OR: left side of logical op
+                           //  - AST_REDIRECT: the command to redirect
+                           //  - AST_PIPE (if binary): the first command
+                           //  - AST_SUBSHELL: subtree inside the subshell
+                           //  - NULL for AST_COMMAND, N-ary PIPE
+
+    struct s_ast *right;   // Right child:
+                           //  - AST_AND / AST_OR: right side of logical op
+                           //  - AST_PIPE (if binary): the second command
+                           //  - (Rarely used for redirect)
+                           //  - NULL for AST_COMMAND, SUBSHELL, N-ary PIPE
+
+    char **argv;           // Arguments for command:
+                           //  - AST_COMMAND: array of command and its arguments
+                           //  - NULL for other node types
+
+    char *file;            // Filename for redirect:
+                           //  - AST_REDIRECT: target file name for redirect (e.g., output.txt)
+                           //  - NULL for other node types
+
+    int redirect_type;     // Kind of redirect:
+                           //  - AST_REDIRECT: (e.g., input, output, append)
+                           //  - 0 or unused for other types
+
+    t_ast_list *children;  // N-ary children:
+                           //  - AST_PIPE: linked list of command nodes when more than two
+                           //  - NULL for AST_COMMAND, REDIRECT, AND, OR, SUBSHELL
+} t_ast;
+
+*/
+
+#include "nanoshell.h"
+
+// Command node constructor
+t_ast *ast_new_command(char **tokens)
+{
+	t_ast	*node;
+
+	node = safe_malloc(sizeof(t_ast));
+	node->type = AST_COMMAND;
+	node->left = NULL;
+	node->right = NULL;
+	node->argv = tokens;
+	node->file = NULL;
+	node->redirect_type = 0;
+	node->children = NULL;
+	return (node);
+}
+
+// Pipe node constructor
+t_ast *ast_new_pipe(t_ast_list *children)
+{
+	t_ast	*node;
+
+	node = safe_malloc(sizeof(t_ast));
+	node->type = AST_PIPE;
+	node->left = NULL;
+    node->right = NULL;
+    node->argv = NULL;
+    node->file = NULL;
+    node->redirect_type = 0;
+    node->children = children;
+	return (node);
+}
+
+// Redirect node constructor
+t_ast *ast_new_redirect(t_ast *cmd, char *file, int redirect_type)
+{
+	t_ast   *node;
+
+    node = safe_malloc(sizeof(t_ast));
+    node->type = AST_REDIRECT;
+	node->left = cmd;
+	node->right = NULL;
+	node->argv = NULL;
+	node->file = file;
+	node->redirect_type = redirect_type;
+	node->children = NULL;
+	return (node);
+}
+// Logic AND/OR node constructor
+t_ast *ast_new_and(t_ast *left, t_ast *right)
+{
+	t_ast   *node;
+
+    node = safe_malloc(sizeof(t_ast));
+    node->type = AST_AND;
+    node->left = left;
+    node->right = right;
+    node->argv = NULL;
+    node->file = NULL;
+    node->redirect_type = 0;
+    node->children = NULL;
+    return (node);
+}
+
+t_ast *ast_new_or(t_ast *left, t_ast *right)
+{
+    t_ast   *node;
+
+    node = safe_malloc(sizeof(t_ast));
+    node->type = AST_OR;
+    node->left = left;
+    node->right = right;
+    node->argv = NULL;
+    node->file = NULL;
+    node->redirect_type = 0;
+    node->children = NULL;
+    return (node);
+}
+
+// Subshell node constructor
+t_ast *ast_new_subshell(t_ast *child)
+{
+    t_ast   *node;
+
+    node = malloc(sizeof(t_ast));
+    node->type = AST_SUBSHELL;
+    node->left = child;
+    node->right = NULL;
+    node->argv = NULL;
+    node->file = NULL;
+    node->redirect_type = 0;
+    node->children = NULL;
+    return (node);
+}
+/*
+---> RECOMENDED HELPERS
+
+AST List Management (for N-ary nodes)
+----------------------------------------
+t_ast_list *ast_list_new(t_ast *node); ✅
+Creates a new list node.
+
+t_ast_list *ast_list_append(t_ast_list *head, t_ast *node); ✅
+Appends a node to the end of a children list.
+
+void ast_list_free(t_ast_list *list); ✅
+Recursively frees an AST children list.
+
+Command Argument Utilities
+-----------------------------------------
+int ast_count_args(char **argv);          ✅
+Returns argument count for a command's argv.
+
+Memory Management
+-----------------------------------------
+void ast_free(t_ast *node);             ✅
+Recursively frees an entire AST and its children.
+
+Debugging / Printing ASTs
+-----------------------------------------
+void ast_print(const t_ast *root, int indent);
+Prints the AST structure for debugging (indentation shows depth).
+(You might want optional colored output for clarity.)
+
+Error Handling and Recovery
+------------------------------------------
+void ast_parser_error(const char *msg, t_token *tok);
+Standardizes parser error messages and possibly halts parsing.
+
+
+???????????????????????????????????????????????????
+Token Utilities (in Parser)
+------------------------------
+t_token *token_next_word(t_token *tok);
+Skips non-word tokens, returns next word token.
+
+t_token *token_skip_until(t_token *tok, t_token_type type);
+Skips tokens until it finds a desired type (e.g., pipe, redirect).
+(Speeds up command grouping in parser logic.)
+*/
+
+#include "nanoshell.h"
+
+//void ast_list_free(t_ast_list *list);
+//void ast_free(t_ast *node);
+
+// AST List Management
+
+// Creates a new list node.
+t_ast_list *ast_list_new(t_ast *node)
+{
+	t_ast_list	*list;
+
+	list = safe_malloc(sizeof(t_ast_list));
+	list->node = node;
+	list->next = NULL;
+	return (list);
+}
+
+// Appends a node to the end of a children list.
+t_ast_list *ast_list_append(t_ast_list *head, t_ast *node)
+{
+	t_ast_list	*tmp;
+	t_ast_list	*new_node;
+
+	if (!node)
+		return (head);
+	new_node = ast_list_new(node);
+	if (!head)
+		return (new_node);
+	tmp = head;
+	while (tmp->next)
+		tmp = tmp->next;
+	tmp->next = new_node;
+	return (head);
+}
+
+// count childrens
+int ast_count_args(char **argv)
+{
+    int count;
+
+    count = 0;
+    while (argv[count])
+        count++;
+    return (count);
+
+}
+
+// Memory management & free
+// Recursively frees an AST children list.
+void ast_list_free(t_ast_list *list)
+{
+	if (!list)
+		return ;
+	ast_free(list->node);
+	ast_list_free(list->next);
+	free(list);
+}
+
+// free ast_nodes & children
+void ast_free(t_ast *node)
+{
+	if (!node)
+		return ;
+	ast_free(node->left);
+	ast_free(node->right);
+	ast_list_free(node->children);
+	free(node->argv);
+	free(node->file);
+	free(node);
+}
+
+
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   basic_utils.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/08 13:57:34 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/13 14:30:04 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "nanoshell.h"
+
+int	is_space(char c)
+{
+	if (c == ' ' || (c >= 9 && c <= 13))
+		return (1);
+	return (0);
+}
+
+int	is_operator(char c)
+{
+	if (c == '<' || c == '>' || c == '|' ||
+		c == '&' || c == '(' || c == ')')
+		return (1);
+	return (0);
+}
+
+void    skip_spaces(const char *line, size_t *i, size_t len)
+{
+    while (*i < len && is_space(line[*i]))
+        (*i)++;
+}
+
+void *safe_malloc(size_t size) 
+{
+    void *ptr = malloc(size);
+    if (!ptr) {
+        perror("Malloc failed");
+        exit(EXIT_FAILURE);
+    }
+    return ptr;
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   buffer_utils.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/08 15:51:26 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/12 15:09:49 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "nanoshell.h"
+
+int buf_append_str(t_buf *b, const char *s)
+{
+	size_t slen;
+
+	if (!b || !s)
+		return (0);
+	slen = ft_strlen(s);
+	if (slen == 0)
+		return (0);
+	if (buf_ensure_capacity(b, b->len + slen + 1) != 0)
+		return (-1);
+	ft_memcpy(b->data + b->len, s, slen);
+	b->len += slen;
+	b->data[b->len] = '\0';
+	return (0);
+}
+
+void	buf_init(t_buf *b)
+{
+	b->data = NULL;
+	b->len = 0;
+	b->cap = 0;
+}
+
+void	buf_free(t_buf *b)
+{
+	if (!b)
+		return ;
+	free(b->data);
+	b->data = NULL;
+	b->len = 0;
+	b->cap = 0;
+}
+
+static size_t	next_capacity(size_t cur, size_t min_needed)//calcular la siguente  capacidad
+{
+	size_t	ncap;
+
+	if (min_needed == 0)
+		return (0);
+	if (cur == 0)
+		ncap = 32;
+	else
+	{
+		ncap = cur * 2;
+	}
+	while (ncap < min_needed)
+	{
+		if (ncap > SIZE_MAX / 2)
+		{
+			ncap = min_needed;//si doblar espacio causa over
+			break ;//      le adjudicamos el min necesario
+		}
+		ncap *= 2;
+	}
+	if (ncap < min_needed)
+		ncap = min_needed;
+	return (ncap);
+}
+
+int	buf_ensure_capacity(t_buf *b, size_t min_needed)//aumenta tamanio buffer
+{
+	size_t	ncap;
+	char	*n;
+
+	if (!b)
+		return (-1);
+	if (b->cap >= min_needed)
+		return (0);
+	ncap = next_capacity(b->cap, min_needed);
+	n = malloc(ncap);
+	if (!n)
+		return (-1);
+	if (b->data && b->len > 0)
+		ft_memcpy(n, b->data, b->len + 1);
+	else
+	{
+		n[0] = '\0';
+	}
+	free(b->data);
+	b->data = n;
+	b->cap = ncap;
+	return (0);
+}
+
+int	buf_append_char(t_buf *b, char c)//aniade un caracter al buffer asegura espacio para char + '\\0'
+{
+	size_t	required;
+
+	if (!b)
+		return (-1);
+	required = b->len + 2; //nuevo char mas terminador
+	if (buf_ensure_capacity(b, required) != 0)
+		return (-1);
+	b->data[b->len++] = c;
+	b->data[b->len] = '\0';
+	return (0);
+}
+
+char	*buf_release(t_buf *buf)
+{
+	char *ret;
+
+	if (!buf)
+		return (NULL);
+	ret = buf->data;
+	buf->data = NULL;
+	buf->len = 0;
+	buf->cap = 0;
+	return (ret);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   display_token.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/13 13:02:42 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/13 13:15:50 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "nanoshell.h"
+
+static const char *type_to_str(t_token_type t)
+{
+    if (t == TOKEN_WORD) return ("WORD");
+    if (t == TOKEN_PIPE) return ("PIPE");
+    if (t == TOKEN_REDIR_IN) return ("REDIR_IN");
+    if (t == TOKEN_REDIR_OUT) return ("REDIR_OUT");
+    if (t == TOKEN_REDIR_APPEND) return ("REDIR_APPEND");
+    if (t == TOKEN_HEREDOC) return ("HEREDOC");
+    if (t == TOKEN_AND) return ("AND");
+    if (t == TOKEN_OR) return ("OR");
+    if (t == TOKEN_LPAREN) return ("LPAREN");
+    if (t == TOKEN_RPAREN) return ("RPAREN");
+    if (t == TOKEN_EOF) return ("EOF");
+    if (t == TOKEN_ERROR) return ("ERROR");
+    return ("UNKNOWN");
+}
+
+
+static const char *quote_to_str(t_quote_type q)
+{
+    if (q == QT_NONE)   return ("NONE");
+    if (q == QT_SINGLE) return ("SINGLE");
+    if (q == QT_DOUBLE) return ("DOUBLE");
+    if (q == QT_MIXED)  return ("MIXED");
+    return ("UNKNOWN");
+}
+
+
+const char *display_text_for_token(const t_token *t)
+{
+	if (t == NULL)
+		return "";
+
+	if (t->text && t->text[0] != '\0')
+		return t->text;
+
+	switch (t->type)
+	{
+		case TOKEN_PIPE: return "|";
+		case TOKEN_REDIR_OUT: return ">";
+		case TOKEN_REDIR_APPEND: return ">>";
+		case TOKEN_REDIR_IN: return "<";
+		case TOKEN_HEREDOC: return "<<";
+		case TOKEN_AND: return "&&";
+		case TOKEN_OR: return "||";
+		case TOKEN_LPAREN: return "(";
+		case TOKEN_RPAREN: return ")";
+		case TOKEN_EOF: return "EOF";
+		case TOKEN_ERROR: return "ERROR";
+		case TOKEN_WORD:
+		default:
+			return "";
+	}
+}
+
+
+static void print_escaped(const char *s)
+{
+	if (!s)
+	{
+		printf("(null)");
+		return;
+	}
+	while (*s)
+	{
+		unsigned char c = (unsigned char)*s;
+		switch (c)
+		{
+			case '\n': printf("\\n"); break;
+			case '\r': printf("\\r"); break;
+			case '\t': printf("\\t"); break;
+			case '\b': printf("\\b"); break;
+			case '\a': printf("\\a"); break;
+			case '\v': printf("\\v"); break;
+			case '\\': printf("\\\\"); break;
+			case '\"': printf("\\\""); break;
+			default:
+				if (isprint(c))
+					putchar(c);
+				else
+					printf("\\x%02x", c);
+				break;
+		}
+		s++;
+	}
+}
+
+
+void tokens_print_simple(const t_token *head)
+{
+	const t_token *cur = head;
+	int idx = 1;
+
+	while (cur)
+	{
+		const char *raw = cur->text;
+		const char *display = display_text_for_token(cur);
+
+		printf("token%-3d type=%-12s pos=%4zu quote=%-6s raw=\"",
+			   idx, type_to_str(cur->type), cur->pos, quote_to_str(cur->quote));
+		print_escaped(raw);
+		printf("\" display=\"%s\"", display ? display : "");
+		if (cur->type == TOKEN_ERROR)
+			printf("  <-- ERROR");
+		printf("\n");
+
+		cur = cur->next;
+		idx++;
+	}
+}
+
+
+void tokens_print_simple_array(const t_token **arr, size_t count)
+{
+	size_t i;
+	for (i = 0; i < count; ++i)
+	{
+		const t_token *t = arr[i];
+		if (!t)
+		{
+			printf("token%zu: (NULL)\n", i + 1);
+			continue;
+		}
+		printf("token%-3zu type=%-12s pos=%4d quote=%-6s raw=\"",
+			   i + 1,
+			   type_to_str(t->type),
+			   (int)t->pos,
+			   quote_to_str(t->quote));
+		print_escaped(t->text);
+		printf("\" display=\"%s\"\n", display_text_for_token(t));
+	}
+}
+/*
+ ▄▄▄██▀▀▀    ▄▄▄          ██▒   █▓    ██▓   ▓█████     ██▀███  
+   ▒██      ▒████▄       ▓██░   █▒   ▓██▒   ▓█   ▀    ▓██ ▒ ██▒
+   ░██      ▒██  ▀█▄      ▓██  █▒░   ▒██▒   ▒███      ▓██ ░▄█ ▒
+▓██▄██▓     ░██▄▄▄▄██      ▒██ █░░   ░██░   ▒▓█  ▄    ▒██▀▀█▄  
+ ▓███▒       ▓█   ▓██▒      ▒▀█░     ░██░   ░▒████▒   ░██▓ ▒██▒
+ ▒▓▒▒░       ▒▒   ▓▒█░      ░ ▐░     ░▓     ░░ ▒░ ░   ░ ▒▓ ░▒▓░
+ ▒ ░▒░        ▒   ▒▒ ░      ░ ░░      ▒ ░    ░ ░  ░     ░▒ ░ ▒░
+ ░ ░ ░        ░   ▒           ░░      ▒ ░      ░        ░░   ░ 
+ ░   ░            ░  ░         ░      ░        ░  ░      ░     
+                              ░                                
+*/
+
+#include "nanoshell.h"
+
+int expand_special_status(t_buf *buf, size_t *i, int last_status)
+{
+	char *s;
+	int  rc;
+
+	if (!buf || !i)
+		return (-1);
+	s = ft_itoa(last_status);
+	if (!s)
+		return (-1);
+	rc = buf_append_str(buf, s);
+	free(s);
+	if (rc < 0)
+		return (-1);
+	(*i)++;
+	return (0);
+}
+
+int expand_special_pid(t_buf *buf, size_t *i)
+{
+	char *s;
+	int  rc;
+
+	if (!buf || !i)
+		return (-1);
+	s = ft_itoa((int)getpid());
+	if (!s)
+		return (-1);
+	rc = buf_append_str(buf, s);
+	free(s);
+	if (rc < 0)
+		return (-1);
+	(*i)++;
+	return (0);
+}
+
+int expand_dollar(t_buf *buf, const char *line, size_t *i, size_t len,
+                  int last_status)
+{
+	if (!buf || !line || !i)
+		return (-1);
+	if (*i >= len || line[*i] != '$')
+		return (0);
+	(*i)++;
+	if (*i >= len)
+	{
+		if (buf_append_char(buf, '$') < 0)
+			return (-1);
+		return (0);
+	}
+	if (line[*i] == '?')
+		return (expand_special_status(buf, i, last_status));
+	if (line[*i] == '$')
+		return (expand_special_pid(buf, i));
+	if (line[*i] == '{')
+		return (handle_braced(buf, line, i, len));
+	return (handle_simple(buf, line, i, len));
+}
+/*
+ ▄▄▄██▀▀▀    ▄▄▄          ██▒   █▓    ██▓   ▓█████     ██▀███  
+   ▒██      ▒████▄       ▓██░   █▒   ▓██▒   ▓█   ▀    ▓██ ▒ ██▒
+   ░██      ▒██  ▀█▄      ▓██  █▒░   ▒██▒   ▒███      ▓██ ░▄█ ▒
+▓██▄██▓     ░██▄▄▄▄██      ▒██ █░░   ░██░   ▒▓█  ▄    ▒██▀▀█▄  
+ ▓███▒       ▓█   ▓██▒      ▒▀█░     ░██░   ░▒████▒   ░██▓ ▒██▒
+ ▒▓▒▒░       ▒▒   ▓▒█░      ░ ▐░     ░▓     ░░ ▒░ ░   ░ ▒▓ ░▒▓░
+ ▒ ░▒░        ▒   ▒▒ ░      ░ ░░      ▒ ░    ░ ░  ░     ░▒ ░ ▒░
+ ░ ░ ░        ░   ▒           ░░      ▒ ░      ░        ░░   ░ 
+ ░   ░            ░  ░         ░      ░        ░  ░      ░     
+                              ░                                
+*/
+
+#include "nanoshell.h"
+
+static int append_env_by_name(t_buf *buf, const char *name)
+{
+	const char *val;
+	int rc;
+
+	if (!buf || !name)
+		return (0);
+	val = getenv(name);
+	if (!val)
+		return (0);
+	rc = buf_append_str(buf, val);
+	if (rc < 0)
+		return (-1);
+	return (0);
+}
+
+static int append_literal_range(t_buf *buf, const char *line, size_t start,
+								size_t end)
+{
+	while (start < end)
+	{
+		if (buf_append_char(buf, line[start]) < 0)
+			return (-1);
+		start++;
+	}
+	return (0);
+}
+
+static int braced_unclosed_append(t_buf *buf, const char *line, size_t start,
+								  size_t current)
+{
+	if (!buf || !line)
+		return (-1);
+	if (buf_append_char(buf, '$') < 0)
+		return (-1);
+	if (buf_append_char(buf, '{') < 0)
+		return (-1);
+	if (append_literal_range(buf, line, start, current) < 0)
+		return (-1);
+	return (0);
+}
+
+int handle_braced(t_buf *buf, const char *line, size_t *i, size_t len)
+{
+	size_t start;
+	size_t idlen;
+	char *name;
+	int rc;
+
+	if (!buf || !line || !i)
+		return (-1);
+	(*i)++;
+	start = *i;
+	idlen = parse_identifier_len(line, *i, len);
+	*i += idlen;
+	if (*i >= len || line[*i] != '}')
+		return (braced_unclosed_append(buf, line, start, *i));
+	name = ft_strndup(line + start, idlen);
+	if (!name)
+		return (-1);
+	(*i)++;
+	rc = append_env_by_name(buf, name);
+	free(name);
+	if (rc < 0)
+		return (-1);
+	return (0);
+}
+
+int handle_simple(t_buf *buf, const char *line, size_t *i, size_t len)
+{
+	size_t idlen;
+	char *name;
+	int rc;
+
+	if (!buf || !line || !i)
+		return (-1);
+	idlen = parse_identifier_len(line, *i, len);
+	if (idlen == 0)
+	{
+		if (buf_append_char(buf, '$') < 0)
+			return (-1);
+		return (0);
+	}
+	name = ft_strndup(line + *i, idlen);
+	if (!name)
+		return (-1);
+	*i += idlen;
+	rc = append_env_by_name(buf, name);
+	free(name);
+	if (rc < 0)
+		return (-1);
+	return (0);
+}
+/*
+ ▄▄▄██▀▀▀    ▄▄▄          ██▒   █▓    ██▓   ▓█████     ██▀███  
+   ▒██      ▒████▄       ▓██░   █▒   ▓██▒   ▓█   ▀    ▓██ ▒ ██▒
+   ░██      ▒██  ▀█▄      ▓██  █▒░   ▒██▒   ▒███      ▓██ ░▄█ ▒
+▓██▄██▓     ░██▄▄▄▄██      ▒██ █░░   ░██░   ▒▓█  ▄    ▒██▀▀█▄  
+ ▓███▒       ▓█   ▓██▒      ▒▀█░     ░██░   ░▒████▒   ░██▓ ▒██▒
+ ▒▓▒▒░       ▒▒   ▓▒█░      ░ ▐░     ░▓     ░░ ▒░ ░   ░ ▒▓ ░▒▓░
+ ▒ ░▒░        ▒   ▒▒ ░      ░ ░░      ▒ ░    ░ ░  ░     ░▒ ░ ▒░
+ ░ ░ ░        ░   ▒           ░░      ▒ ░      ░        ░░   ░ 
+ ░   ░            ░  ░         ░      ░        ░  ░      ░     
+                              ░                                
+*/
+
+#include "nanoshell.h"
+
+size_t parse_identifier_len(const char *line, size_t i, size_t len)
+{
+    size_t n;
+
+    if (!line || i >= len)
+        return (0);
+    if (!((line[i] >= 'A' && line[i] <= 'Z') ||
+          (line[i] >= 'a' && line[i] <= 'z') ||
+          (line[i] == '_')))
+        return (0);
+    n = 0;
+    while (i + n < len)
+    {
+        char c = line[i + n];
+        if (!((c >= 'A' && c <= 'Z') ||
+              (c >= 'a' && c <= 'z') ||
+              (c >= '0' && c <= '9') ||
+              (c == '_')))
+            break ;
+        n++;
+    }
+    return (n);
+}
+
+char *ft_strndup(const char *s, size_t n)
+{
+    char *out;
+
+    if (!s)
+        return (NULL);
+    out = malloc(n + 1);
+    if (!out)
+        return (NULL);
+    ft_memcpy(out, s, n);
+    out[n] = '\0';
+    return (out);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/08 13:36:40 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "nanoshell.h"
+
+static void	print_banner(void)
+{
+	printf("\n");
+	printf(C);
+	printf("         ██╗       ██╗       ███╗   ███╗    \n");
+	printf("         ██║       ██║       ████╗ ████║    \n");
+	printf("         ██║    ████████╗    ██╔████╔██║    \n");
+	printf("    ██   ██║    ██╔═██╔═╝    ██║╚██╔╝██║    \n");
+	printf("    ╚█████╔╝    ██████║      ██║ ╚═╝ ██║    \n");
+	printf("     ╚════╝     ╚═════╝      ╚═╝     ╚═╝    \n");
+	printf("                                             \n");
+	printf("    ███████╗██╗  ██╗███████╗██╗     ██╗     \n");
+	printf("    ██╔════╝██║  ██║██╔════╝██║     ██║     \n");
+	printf("    ███████╗███████║█████╗  ██║     ██║     \n");
+	printf("    ╚════██║██╔══██║██╔══╝  ██║     ██║     \n");
+	printf("    ███████║██║  ██║███████╗███████╗███████╗\n");
+	printf("    ╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n");
+	printf("                                             \n");
+	printf(RST"\n");
+}
+
+int	main(int ac, char **av, char **ev)
+{
+	t_data	data;
+	char *line;
+	(void)ac;
+	(void)av;
+	(void)ev;
+
+	// 1. Initialize core state
+	line = NULL;
+	data.last_status = 0;
+	data.running = 0;
+	data.cmd = NULL;
+	data.exit = "exit";
+	
+	// 2. Setup signals for Ctrl-C, Ctrl-
+	rl_catch_signals = 0;
+	setup_signals();
+	
+	// 3. Set History
+    read_history(".nanoshell_history");
+    
+	// 4. Print banner
+    print_banner();
+	// 5. Shell loop
+	while (data.running == 0)
+	{
+		line = readline("$> ");
+		// Handle signal flag if set
+		if (g_signal_received == SIGINT) 
+		{
+    		// Handle Ctrl-C: redisplay prompt
+    		g_signal_received = 0;
+    		free(line);
+			continue ;
+		}
+		else if (g_signal_received == SIGQUIT) 
+		{
+    		// Handle Ctrl-\: IGNORE at prompt, just reset and do nothing
+    		g_signal_received = 0;
+    		free(line);
+    		continue ;
+		}
+		if (line == NULL)
+		{
+			break ;
+		}
+		if (line[0] != '\0')
+		{
+			add_history(line);
+		}
+		data.cmd = line;
+		if (strcmp(data.cmd, data.exit) == 0)
+		{
+			data.running = 1;
+			free(line);
+			break ;
+		}
+		// tokeniser test
+		t_token	*tokens = tokenizer(line, data.last_status);
+		if (!tokens)
+		{
+			free(line);
+			continue ;
+		}
+		tokens_print_simple(tokens);
+		free_tokens(tokens);
+		// Your parser/executor calls...
+        free(line);
+        
+	}
+	write_history(".nanoshell_history"); // Save session history
+	return (0);
+}
+
+
+/*
+    char *intro =
+"      ▓█████  ███▄ ▄███▓ ▒█████    ██████  ██▓▓█████▄  ▒█████\n"
+"      ▓█   ▀ ▓██▒▀█▀ ██▒▒██▒  ██▒▒██    ▒ ▓██▒▒██▀ ██▌▒██▒  ██▒           \n"
+"      ▒███   ▓██    ▓██░▒██░  ██▒░ ▓██▄   ▒██▒░██   █▌▒██░  ██▒           \n"
+"      ▒▓█  ▄ ▒██    ▒██ ▒██   ██░  ▒   ██▒░██░░▓█▄   ▌▒██   ██░           \n"
+"      ░▒████▒▒██▒   ░██▒░ ████▓▒░▒██████▒▒░██░░▒████▓ ░ ████▓▒░           \n"
+"      ░░ ▒░ ░░ ▒░   ░  ░░ ▒░▒░▒░ ▒ ▒▓▒ ▒ ░░▓   ▒▒▓  ▒ ░ ▒░▒░▒░            \n"
+"       ░ ░  ░░  ░      ░  ░ ▒ ▒░ ░ ░▒  ░ ░ ▒ ░ ░ ▒  ▒   ░ ▒ ▒░            \n"
+"         ░   ░      ░   ░ ░ ░ ▒  ░  ░  ░   ▒ ░ ░ ░  ░ ░ ░ ░ ▒             \n"
+"         ░  ░       ░       ░ ░        ░▀▀█▄    ░        ░ ░             \n"
+"▓█████  ███▄    █   ▄████  ▄▄▄       ███▄    █ ░▄▄▄      ▓█████▄  ▒█████  \n"
+"▓█   ▀  ██ ▀█   █  ██▒ ▀█▒▒████▄     ██ ▀█   █ ▒████▄    ▒██▀ ██▌▒██▒  ██▒\n"
+"▒███   ▓██  ▀█ ██▒▒██░▄▄▄░▒██  ▀█▄  ▓██  ▀█ ██▒▒██  ▀█▄  ░██   █▌▒██░  ██▒\n"
+"▒▓█  ▄ ▓██▒  ▐▌██▒░▓█  ██▓░██▄▄▄▄██ ▓██▒  ▐▌██▒░██▄▄▄▄██ ░▓█▄   ▌▒██   ██░\n"
+"░▒████▒▒██░   ▓██░░▒▓███▀▒ ▓█   ▓██▒▒██░   ▓██░ ▓█   ▓██▒░▒████▓ ░ ████▓▒░\n"
+"░░ ▒░ ░░ ▒░   ▒ ▒  ░▒   ▒  ▒▒   ▓▒█░░ ▒░   ▒ ▒  ▒▒   ▓▒█░ ▒▒▓  ▒ ░ ▒░▒░▒░ \n"
+" ░ ░  ░░ ░░   ░ ▒░  ░   ░   ▒   ▒▒ ░░ ░░   ░ ▒░  ▒   ▒▒ ░ ░ ▒  ▒   ░ ▒ ▒░ \n"
+"   ░      ░   ░ ░ ░ ░   ░   ░   ▒      ░   ░ ░   ░   ▒    ░ ░  ░ ░ ░ ░ ▒  \n"
+"   ░  ░         ░       ░       ░  ░         ░       ░  ░   ░        ░ ░  \n"
+"                                                          ░               \n";
+*/
+
+
+/*
+int ft_count_words(char *str)
+{
+    int i = 0;
+    int count = 0;
+
+	if (!str)
+		return (0);
+    while (str[i])
+    {
+        while(str[i] == ' ' || str[i] == '\t' || str[i] == '\n')
+            i++;
+        if (str[i] != '\0')
+            count++;
+        while((str[i] != ' ' && str[i] != '\t' && str[i] != '\n') && str[i] != '\0')
+            i++;
+    }
+    return (count);
+}
+
+int ft_len_size(char *str, int init)
+{
+    int i = 0;
+
+	if (!str)
+		return (0);
+    while (str[init + i] && (str[init + i] != ' ' && str[init + i] != '\t' && str[init + i] != '\n'))
+        i++;
+    return (i);
+}
+
+void    ft_cpy_str(char *ori, char *dest, int init)
+{
+    int i = 0;
+	if (!ori || !dest)
+		return  ;
+    while (ori[i + init] && (ori[i + init] != ' ' && ori[i + init] != '\t' && ori[i + init] != '\n'))
+    {
+        dest[i] = ori[init + i];
+        i++;
+    }
+    dest[i] = '\0';
+}
+
+char    **ft_split(char *str)
+{
+    int i = 0;
+    int j = 0;
+    int nwords = ft_count_words(str);
+    int len = 0;
+    char **out;
+
+	if (!str)
+		return (NULL);
+    out = malloc(sizeof(char *) * (nwords + 1));
+    if (!out)
+    {
+        perror("error split malloc");
+        return (NULL);
+    }
+    while (str[i])
+    {
+        while (str[i] == ' ' || str[i] == '\t' || str[i] == '\n')
+            i++;
+        len = ft_len_size(str, i);
+		if (len == 0)
+		{
+			fprintf(stderr, "error in len_size");
+			out[j] = NULL;
+			ft_free_all(out);
+			return (NULL);
+		}
+		if (j >= nwords)
+			break ;
+        out[j] = malloc(sizeof(char) * (len + 1));
+        if (!out[j])
+        {
+            perror("error allocating split malloc");
+            out[j] = NULL; // LO PONEMOS A NULL PARA Q LA FUNC. FREE_ALL ENCUENTRE DONDE TERMINAR DE ITERAR.
+			ft_free_all(out);
+            return (NULL);
+        }
+        ft_cpy_str(str, out[j], i);
+        j++;
+        i += len;
+    }
+    out[j] = NULL;
+    return (out);
+}
+
+void	ft_free_all(char **ar)
+{
+	int	i = 0;
+	if (!ar)
+		return ;
+	while (ar[i])
+	{
+		free(ar[i]);
+		i++;
+	}
+	free(ar);
+}
+
+char	*join_path_cmd(char *path, char *cmd)
+{
+	char	*out;
+	int		len1;
+	int		len2;
+	int		i = 0;
+	int		j = 0;
+
+	if (!path || !cmd)
+		return (NULL);
+	len1 = strlen(path);
+	len2 = strlen(cmd);
+	out = malloc(sizeof(char ) * (len1 + len2 + 2));
+	if (!out)
+	{
+		perror ("error joining path & cmd");
+		return (NULL);
+	}
+	if (path)
+	{
+		while (path[i])
+		{
+			out[i] = path[i];
+			i++;
+		}
+	}
+	out[i++] = '/';
+	if (cmd)
+	{
+		while (cmd[j])
+		{
+			out[i +  j] = cmd[j];
+			j++;
+		}
+	}
+	out[i + j] = '\0';
+	return (out);
+}
+
+int	ft_count_paths(char *raw)
+{
+	int	i = 0;
+	int	count = 1;
+
+	if (!raw)
+		return (0);
+	while (raw[i])
+	{
+		if (raw[i] == ':')
+			count++;
+		i++;
+	}
+	return (count);
+}
+
+void		ft_cpy_path(char *raw, char *dest, int start)
+{
+	int	i = 0;
+
+	if (!raw || !dest)
+		return ;
+	while (raw[i + start] && raw[i + start] != ':')
+	{
+		dest[i] = raw[i + start];
+		i++;
+	}
+	dest[i] = '\0';
+}
+
+char	**split_path(char *raw)
+{
+	int		i = 0;
+	int		k = 0;
+	int		start = 0;
+	int		posibles = 0;
+	int		j = 0;
+	int		len = 0;
+	char	**out;
+
+	if (!raw)
+		return (NULL);
+	posibles = ft_count_paths(raw);
+	out = malloc(sizeof(char *) * (posibles + 1));
+	if (!out)
+	{
+		perror("error allocating path arrays");
+		return (NULL);
+	}
+	while (1)
+	{
+		if (raw[i] == ':' || raw[i] == '\0')
+		{
+			len = i - start;
+			if (j >= posibles)
+				break ;
+			out[j] = malloc(sizeof(char) * (len + 1));
+			if (!out[j])
+			{
+				perror("error allocating inisde the array");
+				out[j] = NULL;//lo ponemos a null para que la funcion free_all encuentre el final de la iteracion.
+				ft_free_all(out);
+				return (NULL);
+			}
+			ft_cpy_path(raw, out[j], start);
+			j++;
+			if (raw[i] == '\0')
+				break ;
+			start = i + 1;
+		}
+		i++;
+	}
+	out[j] = NULL;
+	return (out);
+
+}
+
+char	*find_path(char *cmd)
+{
+	char	*env_path = getenv("PATH");
+	char	**all_paths;
+	int		i = 0;
+	char	*full_path;
+    
+    if (!env_path)
+        return (NULL);
+	if (!cmd)
+		return(NULL);
+	if (access(cmd, X_OK) == 0)
+		return (strdup(cmd));
+	if (!env_path)
+		return (NULL);
+	all_paths = split_path(env_path);
+	if (!all_paths)
+		return (NULL);
+	while (all_paths[i])
+	{
+		full_path = join_path_cmd(all_paths[i], cmd);
+		if (!full_path)
+		{
+			//free(full_path);(innecesario?)
+            ft_free_all(all_paths);
+			return NULL;
+		}
+		if (access(full_path, X_OK) == 0)
+		{
+			ft_free_all(all_paths);
+			return (full_path);
+		}
+		free(full_path);
+		i++;
+	}
+	ft_free_all(all_paths);
+	return (NULL);
+}
+
+void	execute_cmd(char *line_cmd, char **ev)
+{
+	
+	char	**cmd_args;
+	char	*path;
+
+	if (!line_cmd)
+		_exit (0);
+	cmd_args = ft_split(line_cmd);
+	if (!cmd_args || !cmd_args[0])
+	{
+		ft_free_all(cmd_args);
+		free(line_cmd);
+		_exit(0);
+	}
+	path = find_path(cmd_args[0]);
+	if (!path)
+	{
+		fprintf(stderr, "%s: command not found\n", cmd_args[0]);
+		ft_free_all(cmd_args);
+		free(line_cmd);
+		_exit(127);
+	}
+    if (execve(path, cmd_args, ev) == -1)
+    {
+        perror("execve failed");
+        free(path);
+        ft_free_all(cmd_args);
+		free(line_cmd);
+        _exit(127);
+    }
+}
+*//*
+ ▄▄▄██▀▀▀    ▄▄▄          ██▒   █▓    ██▓   ▓█████     ██▀███  
+   ▒██      ▒████▄       ▓██░   █▒   ▓██▒   ▓█   ▀    ▓██ ▒ ██▒
+   ░██      ▒██  ▀█▄      ▓██  █▒░   ▒██▒   ▒███      ▓██ ░▄█ ▒
+▓██▄██▓     ░██▄▄▄▄██      ▒██ █░░   ░██░   ▒▓█  ▄    ▒██▀▀█▄  
+ ▓███▒       ▓█   ▓██▒      ▒▀█░     ░██░   ░▒████▒   ░██▓ ▒██▒
+ ▒▓▒▒░       ▒▒   ▓▒█░      ░ ▐░     ░▓     ░░ ▒░ ░   ░ ▒▓ ░▒▓░
+ ▒ ░▒░        ▒   ▒▒ ░      ░ ░░      ▒ ░    ░ ░  ░     ░▒ ░ ▒░
+ ░ ░ ░        ░   ▒           ░░      ▒ ░      ░        ░░   ░ 
+ ░   ░            ░  ░         ░      ░        ░  ░      ░     
+                              ░                                
+*/
+
+#include "nanoshell.h"
+
+static int handle_single_quote(t_word_ctx *ctx, const char *line,
+                               size_t *i, size_t len)
+{
+	if (!ctx || !line || !i)
+		return (-1);
+	ctx->seen_single = 1;
+	(*i)++;
+	if (parse_single_quote(&ctx->buf, line, i, len) < 0)
+		return (-1);
+	return (0);
+}
+
+
+static int handle_double_quote(t_word_ctx *ctx, const char *line,
+                               size_t *i, size_t len, int last_status)
+{
+	if (!ctx || !line || !i)
+		return (-2);
+	ctx->seen_double = 1;
+	(*i)++;
+	if (parse_double_quote(&ctx->buf, line, i, len, last_status) < 0)
+		return (-2);
+	return (0);
+}
+
+static int handle_dollar(t_word_ctx *ctx, const char *line,
+                         size_t *i, size_t len, int last_status)
+{
+	if (!ctx || !line || !i)
+		return (-4);
+	if (expand_dollar(&ctx->buf, line, i, len, last_status) < 0)
+		return (-4);
+	return (0);
+}
+
+static int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i)
+{
+	if (!ctx || !line || !i)
+		return (-3);
+	ctx->seen_unquoted = 1;
+	if (buf_append_char(&ctx->buf, line[*i]) < 0)
+		return (-3);
+	(*i)++;
+	return (0);
+}
+
+int process_chars_ctx(t_word_ctx *ctx, const char *line,
+                             size_t *i, size_t len, int last_status)
+{
+	char	c;
+	int		rc;
+
+	while (*i < len && !is_space((char)line[*i]) &&
+		   !is_operator((char)line[*i]))
+	{
+		c = line[*i];
+		if (c == '\'')
+			rc = handle_single_quote(ctx, line, i, len);
+		else if (c == '"')
+			rc = handle_double_quote(ctx, line, i, len, last_status);
+		else if (c == '$')
+			rc = handle_dollar(ctx, line, i, len, last_status);
+		else
+			rc = handle_regular_char(ctx, line, i);
+		if (rc != 0)
+			return (rc);
+	}
+	return (0);
+}
+#define _XOPEN_SOURCE 700
+#include <signal.h>
+#include <string.h>
+#include "nanoshell.h"
+
+volatile sig_atomic_t g_signal_received = 0;
+
+static void signal_handler(int signum) 
+{
+    if (signum == SIGINT)
+    {
+    	write(1, "\n", 1);		// move to a new line
+    	rl_replace_line("", 0);  // Clear previous input text
+    	rl_on_new_line();         // Move to new line
+    	rl_redisplay();           // Redisplay prompt
+    }
+    g_signal_received = signum;  // Store the signal number
+}
+
+void    setup_signals(void)
+{
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = signal_handler;
+    sa.sa_flags = 0; // default behavior
+    sigemptyset(&sa.sa_mask); // don't block any signals in handler
+
+    if (sigaction(SIGINT, &sa, NULL) == -1) 
+    {
+        perror("sigaction SIGINT");
+    }
+    if (sigaction(SIGQUIT, &sa, NULL) == -1) 
+    {
+        perror("sigaction SIGQUIT");
+    }
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   tokenizer.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/13 13:31:36 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/13 13:32:43 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "nanoshell.h"
+
+static int  append_operator(const char *line, size_t *i, size_t len, t_token **head)
+{
+    t_token *op;
+
+    op = parse_operator(line, i, len);
+    if (!op)
+    {
+        free_tokens(*head);
+        return (0);
+    }
+    token_append(head, op);
+    return (1);
+}
+
+static int  append_word(const char *line, size_t *i, size_t len, t_token **head, int last_status)
+{
+    t_token *word;
+
+    word = parse_word(line, i, len, last_status);
+    if (!word)
+    {
+        free_tokens(*head);
+        return (0);
+    }
+    token_append(head, word);
+    return (1);
+}
+
+t_token *tokenizer(const char *line, int last_status)
+{
+    t_token *head;
+    size_t  i;
+    size_t  len;
+
+    if (!line)
+        return NULL;
+    len = ft_strlen(line);
+    head = NULL;
+    i = 0;
+    while (i < len)
+    {
+        skip_spaces(line, &i, len);
+        if (i >= len)
+            break ;
+        if (line[i] == '<' || line[i] == '>' || line[i] == '|' ||
+            line[i] == '&' || line[i] == '(' || line[i] == ')')
+        {
+            if (!append_operator(line, &i, len, &head))
+                return (NULL);
+            continue;
+        }
+        if (!append_word(line, &i, len, &head, last_status))
+            return (NULL);
+    }
+    return (head);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parse_operator.c                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/13 13:00:48 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/13 14:16:58 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "nanoshell.h"
+
+static t_token *handle_greater(const char *line, size_t *i, size_t len, size_t pos)
+{
+    if (*i + 1 < len && line[*i + 1] == '>')
+    {
+        *i += 2;
+        return (token_new(TOKEN_REDIR_APPEND, ft_strdup(">>"), QT_NONE, pos));
+    }
+    *i += 1;
+    return (token_new(TOKEN_REDIR_OUT, ft_strdup(">"), QT_NONE, pos));
+}
+static t_token	*handle_less(const char *line, size_t *i, size_t len, size_t pos)
+{
+    if (*i + 1 < len && line[*i + 1] == '<' )
+    {
+        *i += 2;
+        return (token_new(TOKEN_HEREDOC, ft_strdup("<<"), QT_NONE, pos));
+    }
+    *i += 1;
+    return (token_new(TOKEN_REDIR_IN, ft_strdup("<"), QT_NONE, pos));
+}
+
+static t_token	*handle_pipe_or_or(const char *line, size_t *i, size_t len, size_t pos)
+{
+    if (*i + 1 < len && line[*i + 1] == '|')
+	{
+		*i += 2;
+		return (token_new(TOKEN_OR, ft_strdup("||"), QT_NONE, pos));
+	}
+	*i += 1;
+    return (token_new(TOKEN_PIPE, ft_strdup("|"), QT_NONE, pos));
+}
+
+static t_token	*handle_and_or_amp(const char *line, size_t *i, size_t len, size_t pos)
+{
+	if (*i + 1 < len && line[*i + 1] == '&')
+	{
+		*i += 2;
+		return (token_new(TOKEN_AND, ft_strdup("&&"), QT_NONE, pos));
+	}
+	*i += 1;
+	return (token_new(TOKEN_WORD, ft_strdup("&"), QT_NONE, pos));
+}
+
+static t_token	*handle_paren(const char *line, size_t *i, size_t len, size_t pos)
+{
+	(void)len;
+	if (line[*i] == '(')
+	{
+		*i += 1;
+		return (token_new(TOKEN_LPAREN, ft_strdup("("), QT_NONE, pos));
+	}
+	*i += 1;
+	return (token_new(TOKEN_RPAREN, ft_strdup(")"), QT_NONE, pos));
+}
+
+t_token *parse_operator(const char *line, size_t *i, size_t len)
+{
+    size_t pos;
+
+    if (!line || !i)
+        return (NULL);
+    pos = *i;
+    if (line[*i] == '>') {
+		return (handle_greater(line, i, len, pos));}
+    if (line[*i] == '<') {
+        return (handle_less(line, i, len, pos));}
+    if (line[*i] == '|') {
+        return (handle_pipe_or_or(line, i, len, pos));}
+	if (line[*i] == '&') {
+		return (handle_and_or_amp(line, i, len, pos));}
+	if (line[*i] == '(' || line[*i] == ')'){
+		return (handle_paren(line, i, len, pos));}
+    return (NULL);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parse_quotes.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/12 13:50:51 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/13 14:27:58 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "nanoshell.h"
+
+int	parse_single_quote(t_buf *buf, const char *line, size_t *i, size_t len)
+{
+	while (*i < len && line[*i] != '\'')
+	{
+		if (buf_append_char(buf, line[*i]) < 0)
+			return (-1);
+		(*i)++;
+	}
+	if (*i >= len)
+		return (-1);
+	(*i)++;
+	return (0);
+}
+
+int parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len, int last_status)
+{
+	while (*i < len && line[*i] != '"')
+	{
+		if (line[*i] == '\\' && (*i + 1) < len)
+		{
+			(*i)++;
+			if (buf_append_char(buf, line[*i]) < 0) return (-1);
+			(*i)++;
+			continue;
+		}
+		if (line[*i] == '$')
+		{
+			if (expand_dollar(buf, line, i, len, last_status) < 0) return (-1);
+			continue;
+		}
+		if (buf_append_char(buf, line[*i]) < 0) return (-1);
+		(*i)++;
+	}
+	if (*i >= len) return (-1);
+	(*i)++;
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   token_utils.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/08 14:35:49 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/12 14:40:08 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "nanoshell.h"
+
+t_token	*token_new(t_token_type type, char *text, t_quote_type qt, int pos)
+{
+	t_token	*t = malloc(sizeof(t_token));
+	if (!t)
+	{
+		free(text);
+		return (NULL);
+	}
+	t->type = type;
+	t->text = text;
+	t->quote = qt;
+	t->pos = pos;
+	t->next = NULL;
+	return	(t);
+}
+
+void	token_append(t_token **head, t_token *node)
+{
+	t_token	*cur;
+
+	if (!node)
+		return ;
+	if (!*head)
+	{
+		*head = node;
+		return ;
+	}
+	cur = *head;
+	while (cur->next)
+		cur = cur->next;
+	cur->next = node;
+}
+
+void	free_tokens(t_token *head)
+{
+	t_token *cur;
+	t_token	*n;
+
+	cur = head;
+	while (cur)
+	{
+		n = cur->next;
+		if (cur->text)
+			free(cur->text);
+		free(cur);
+		cur = n;
+	}
+}
+
+t_token	*make_error_token_from_ctx(size_t start, const char *msg, t_word_ctx *ctx)
+{
+	char	*m;
+
+	free(ctx->buf.data);
+	m = ft_strdup(msg);
+	if (!m)
+		return (NULL);
+	return (token_new(TOKEN_ERROR, m, QT_NONE, (int)start));
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parse_words.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/12 14:06:18 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/12 15:03:28 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "nanoshell.h"
+
+static t_quote_type	quote_type_from_flags(int seen_single, int seen_double)
+{
+	if (seen_single && seen_double||
+	    (seen_single && seen_unquoted) ||
+	    (seen_double && seen_unquoted))
+		return (QT_MIXED);
+	if (seen_single)
+		return (QT_SINGLE);
+	if (seen_double)
+		return (QT_DOUBLE);
+	return (QT_NONE);
+}
+
+static t_token	*finalize_token_from_ctx(size_t start, t_word_ctx *ctx)
+{
+	char			*text;
+	t_quote_type	qt;
+
+	text = buf_release(&ctx->buf);
+	if (!text)
+		return (NULL);
+	qt = quote_type_from_flags(ctx->seen_single, ctx->seen_double, ctx->seen_unquoted);
+	return (token_new(TOKEN_WORD, text, qt, (int)start));
+}
+
+static t_token *build_word_token(const char *line, size_t *i, size_t len, size_t start, int last_status)
+{
+    t_word_ctx ctx;
+    int rc;
+    t_token *tok;
+
+    ctx.seen_single = 0;
+    ctx.seen_double = 0;
+    buf_init(&ctx.buf);
+
+    rc = process_chars_ctx(&ctx, line, i, len, last_status);
+    if (rc != 0)
+    {
+        if (rc == -1)
+            return (make_error_token_from_ctx(start, "unclosed single quote", &ctx));
+        if (rc == -2)
+            return (make_error_token_from_ctx(start, "unclosed double quote", &ctx));
+        free(ctx.buf.data);
+        return (NULL);
+    }
+    tok = finalize_token_from_ctx(start, &ctx);
+    return (tok);
+}
+
+t_token	*parse_word(const char *line, size_t *i, size_t len, int last_status)
+{
+	size_t	start;
+
+	if (!line || !i)
+		return (NULL);
+	start = *i;
+	return (build_word_token(line, i , len, start, last_status));
+}

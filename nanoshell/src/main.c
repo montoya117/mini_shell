@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/19 16:03:56 by alemonto         ###   ########.fr       */
+/*   Updated: 2025/11/08 13:36:40 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,8 @@ int	main(int ac, char **av, char **ev)
 
 	// 1. Initialize core state
 	line = NULL;
-	data.status = 0;
+	data.last_status = 0;
+	data.running = 0;
 	data.cmd = NULL;
 	data.exit = "exit";
 	
@@ -57,7 +58,7 @@ int	main(int ac, char **av, char **ev)
 	// 4. Print banner
     print_banner();
 	// 5. Shell loop
-	while (data.status == 0)
+	while (data.running == 0)
 	{
 		line = readline("$> ");
 		// Handle signal flag if set
@@ -86,25 +87,28 @@ int	main(int ac, char **av, char **ev)
 		data.cmd = line;
 		if (strcmp(data.cmd, data.exit) == 0)
 		{
-			data.status = 1;
+			data.running = 1;
 			free(line);
 			break ;
 		}
-		// tokeniser
-		t_token	*tokens = tokenizer(line);
-		tokens_print_simple(tokens); // print for test
+		// tokeniser test
+		t_token	*tokens = tokenizer(line, data.last_status);
+		if (!tokens)
+		{
+			free(line);
+			continue ;
+		}
+		tokens_print_simple(tokens);
 		
-		 // Test commands only 
-		 t_ast *tree = parser(&tokens);
-		 if (tree)
-		 {
+		// parser & AST
+		t_ast *tree = parser(&tokens);
+		if (tree)
+		{
 			ast_print(tree, 0);
 			ast_free(tree);
-		 } 
-		// free stufff
+		} 
 		free_tokens(tokens);
-        free(line);
-        
+        free(line); 
 	}
 	write_history(".nanoshell_history"); // Save session history
 	return (0);

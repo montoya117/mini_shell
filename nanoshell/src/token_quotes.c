@@ -26,24 +26,26 @@ int	parse_single_quote(t_buf *buf, const char *line, size_t *i, size_t len)
 	return (0);
 }
 
-int parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len)
+int parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len, int last_status)
 {
 	while (*i < len && line[*i] != '"')
 	{
 		if (line[*i] == '\\' && (*i + 1) < len)
 		{
 			(*i)++;
-			if (buf_append_char(buf, line[*i]) < 0)
-				return (-1);
+			if (buf_append_char(buf, line[*i]) < 0) return (-1);
 			(*i)++;
 			continue;
 		}
-		if (buf_append_char(buf, line[*i]) < 0)
-			return (-1);
+		if (line[*i] == '$')
+		{
+			if (expand_dollar(buf, line, i, len, last_status) < 0) return (-1);
+			continue;
+		}
+		if (buf_append_char(buf, line[*i]) < 0) return (-1);
 		(*i)++;
 	}
-	if (*i >= len)
-		return (-1);
+	if (*i >= len) return (-1);
 	(*i)++;
 	return (0);
 }

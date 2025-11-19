@@ -41,7 +41,7 @@
 #define Y	"\033[1;33m"
 #define G	"\033[1;32m"
 #define C	"\033[1;36m"
-#define M	"\033[1;35m"  
+#define M	"\033[1;35m"
 #define RED	"\033[1;31m"
 #define RST	"\033[0m"
 
@@ -53,7 +53,8 @@ extern volatile sig_atomic_t g_signal_received;
 
 // DATA STRUCT
 typedef struct s_data {
-	int		status;
+	int		running;
+	int		last_status;
 	char	*cmd;
 	char	*exit;
 }	t_data;
@@ -107,6 +108,7 @@ typedef struct s_word_ctx
 	t_buf	buf;
 	int		seen_single;
 	int		seen_double;
+	int		seen_unquoted;
 }	t_word_ctx;
 
 // AST STRUCTS
@@ -143,7 +145,7 @@ typedef struct s_ast
 
 // LEXER
 //____________ TOKENIZER.CT
-t_token	*tokenizer(const char *line);
+t_token	*tokenizer(const char *line, int last_status);
 
 //____________	TOKENS_UTILS.C
 
@@ -161,18 +163,38 @@ void	tokens_print_simple_array(const t_token **arr, size_t count);
 t_token *parse_operator(const char *line, size_t *i, size_t len);
 
 //________		TOKEN_WORDS.C
-t_token *parse_word(const char *line, size_t *i, size_t len);
+t_token *parse_word(const char *line, size_t *i, size_t len, int last_status);
 
 //________		TOKEN_QUOTES.C
 int		parse_single_quote(t_buf *buf, const char *line, size_t *i, size_t len);
-int		parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len);
+int		parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len, int last_status);
 
 //_________		BUFFER_UTILS.C
+int buf_append_str(t_buf *b, const char *s); // habra que moverla 
 void    buf_init(t_buf *b);
 void    buf_free(t_buf *b);
 int		buf_ensure_capacity(t_buf *b, size_t min_needed);
 int		buf_append_char(t_buf *b, char c);
 char    *buf_release(t_buf *buf);//habra q moverla de este archivo, ya le buscare sitio...
+
+
+//________        EXPAND.C
+int expand_dollar(t_buf *buf, const char *line, size_t *i, size_t len, int last_status);
+int expand_special_pid(t_buf *buf, size_t *i);
+int expand_special_status(t_buf *buf, size_t *i, int last_status);
+
+//__________    EXPAND_HANDLERS.C
+
+int handle_braced(t_buf *buf, const char *line, size_t *i, size_t len);
+int handle_simple(t_buf *buf, const char *line, size_t *i, size_t len);
+
+//__________  HANDLE_BRACE_UTILS.C
+size_t parse_identifier_len(const char *line, size_t i, size_t len);
+char *ft_strndup(const char *s, size_t n);
+
+//_______   PROCES_CHARS_CTX.C
+int process_chars_ctx(t_word_ctx *ctx, const char *line,
+                             size_t *i, size_t len, int last_status);
 
 //_________		SIGNALS.C
 void	setup_signals(void);
@@ -218,7 +240,6 @@ int			ft_strlen_const(const char *str); // TODO HEY HEY !!
 t_token		*token_next_word(t_token *token);
 t_token		*token_skip_until(t_token *token, t_token_type type);
 // ___________  UTILS
-
 //____________	BASIC_UTILS.C	____________
 int		is_space(char c);
 int		is_operator(char c);

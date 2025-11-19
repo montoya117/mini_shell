@@ -29,6 +29,17 @@ static const char *type_to_str(t_token_type t)
     return ("UNKNOWN");
 }
 
+
+static const char *quote_to_str(t_quote_type q)
+{
+    if (q == QT_NONE)   return ("NONE");
+    if (q == QT_SINGLE) return ("SINGLE");
+    if (q == QT_DOUBLE) return ("DOUBLE");
+    if (q == QT_MIXED)  return ("MIXED");
+    return ("UNKNOWN");
+}
+
+
 const char *display_text_for_token(const t_token *t)
 {
 	if (t == NULL)
@@ -37,7 +48,6 @@ const char *display_text_for_token(const t_token *t)
 	if (t->text && t->text[0] != '\0')
 		return t->text;
 
-	/* token->text es NULL o vacío: mostrar símbolo según tipo */
 	switch (t->type)
 	{
 		case TOKEN_PIPE: return "|";
@@ -53,12 +63,43 @@ const char *display_text_for_token(const t_token *t)
 		case TOKEN_ERROR: return "ERROR";
 		case TOKEN_WORD:
 		default:
-			/* fallback (debería haberse cubierto con text) */
 			return "";
 	}
 }
 
-/* Imprime tokens de una lista enlazada: token1 [texto] ... */
+
+static void print_escaped(const char *s)
+{
+	if (!s)
+	{
+		printf("(null)");
+		return;
+	}
+	while (*s)
+	{
+		unsigned char c = (unsigned char)*s;
+		switch (c)
+		{
+			case '\n': printf("\\n"); break;
+			case '\r': printf("\\r"); break;
+			case '\t': printf("\\t"); break;
+			case '\b': printf("\\b"); break;
+			case '\a': printf("\\a"); break;
+			case '\v': printf("\\v"); break;
+			case '\\': printf("\\\\"); break;
+			case '\"': printf("\\\""); break;
+			default:
+				if (isprint(c))
+					putchar(c);
+				else
+					printf("\\x%02x", c);
+				break;
+		}
+		s++;
+	}
+}
+
+
 void tokens_print_simple(const t_token *head)
 {
 	const t_token *cur = head;
@@ -66,21 +107,40 @@ void tokens_print_simple(const t_token *head)
 
 	while (cur)
 	{
-		printf("token%d [%s] type=%s pos=%zu\n", idx, display_text_for_token(cur), type_to_str(cur->type), cur->pos);
+		const char *raw = cur->text;
+		const char *display = display_text_for_token(cur);
+
+		printf("token%-3d type=%-12s pos=%4zu quote=%-6s raw=\"",
+			   idx, type_to_str(cur->type), cur->pos, quote_to_str(cur->quote));
+		print_escaped(raw);
+		printf("\" display=\"%s\"", display ? display : "");
+		if (cur->type == TOKEN_ERROR)
+			printf("  <-- ERROR");
+		printf("\n");
+
 		cur = cur->next;
 		idx++;
 	}
 }
 
-/* Variente para array de punteros: tokens_print_simple_array(arr, count) */
+
 void tokens_print_simple_array(const t_token **arr, size_t count)
 {
 	size_t i;
 	for (i = 0; i < count; ++i)
 	{
 		const t_token *t = arr[i];
-		const char *txt = display_text_for_token(t);
-		printf("token%zu [%s]\n", i + 1, txt);
+		if (!t)
+		{
+			printf("token%zu: (NULL)\n", i + 1);
+			continue;
+		}
+		printf("token%-3zu type=%-12s pos=%4d quote=%-6s raw=\"",
+			   i + 1,
+			   type_to_str(t->type),
+			   (int)t->pos,
+			   quote_to_str(t->quote));
+		print_escaped(t->text);
+		printf("\" display=\"%s\"\n", display_text_for_token(t));
 	}
 }
-

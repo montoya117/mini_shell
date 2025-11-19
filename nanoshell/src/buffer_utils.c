@@ -12,6 +12,23 @@
 
 #include "nanoshell.h"
 
+int buf_append_str(t_buf *b, const char *s)
+{
+	size_t slen;
+
+	if (!b || !s)
+		return (0);
+	slen = ft_strlen(s);
+	if (slen == 0)
+		return (0);
+	if (buf_ensure_capacity(b, b->len + slen + 1) != 0)
+		return (-1);
+	ft_memcpy(b->data + b->len, s, slen);
+	b->len += slen;
+	b->data[b->len] = '\0';
+	return (0);
+}
+
 void	buf_init(t_buf *b)
 {
 	b->data = NULL;
