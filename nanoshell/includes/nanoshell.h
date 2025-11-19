@@ -183,7 +183,10 @@ void	setup_signals(void);
 t_ast   *parser(t_token *tokens);
 
 //__________    PARSER_COMMANDS.C
-t_ast *parser_commands(t_token *tokens);
+t_ast	*parser_commands(t_token **ptokens);
+t_ast	*parser_logical(t_token **ptokens);
+t_ast   *parser_pipe(t_token **ptokens);
+t_ast   *parser_subshell(t_token **ptokens);
 
 //__________    AST_TREE
 //__________    AST_INIT.C
