@@ -15,7 +15,6 @@ t_ast *parser_commands(t_token **ptokens)
     t_token         *token;
     t_token_type    redirect_type;
     t_ast           *cmd;
-    t_ast           *expansion_node;
 
     token = *ptokens;
     argc = 0;
@@ -92,7 +91,7 @@ t_ast   *parser_pipe(t_token **ptokens)
 	t_ast			*right;
     t_ast_list      *pipe_list;
 
-    left = parser_commnand_or_subshell(ptokens);
+    left = parser_command_or_subshell(ptokens);
     token = *ptokens;
     pipe_list = ast_list_new(left);
     while (token && token->type == TOKEN_PIPE)
@@ -132,10 +131,10 @@ t_ast   *parser_subshell(t_token **ptokens)
 
 }
 
-t_ast   *parse_command_or_subshel(t_token **ptokens)
+t_ast   *parser_command_or_subshell(t_token **ptokens)
 {
     if (*ptokens && (*ptokens)->type == TOKEN_LPAREN)
-        return parse_subshell(ptokens);
+        return parser_subshell(ptokens);
     else
         return parser_commands(ptokens);
 }

@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/08 13:36:40 by jadelgad         ###   ########.fr       */
+/*   Updated: 2025/11/19 16:03:56 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,11 +95,11 @@ int	main(int ac, char **av, char **ev)
 		tokens_print_simple(tokens); // print for test
 		
 		 // Test commands only 
-		 t_ast *cmd = parser_commands(tokens);
-		 if (cmd)
+		 t_ast *tree = parser(&tokens);
+		 if (tree)
 		 {
-			ast_print(cmd, 0);
-			ast_free(cmd);
+			ast_print(tree, 0);
+			ast_free(tree);
 		 } 
 		// free stufff
 		free_tokens(tokens);
