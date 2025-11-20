@@ -1,11 +1,16 @@
 # mini_shell
  Mini_Shell_project
 
- test
- mas test aun
- habe a
+ This is Javi's & Monty's repo for mini_shell project:
 
- gWH	WH
- W	HEWH
-	WH
-	HHER
+ ---> LEXER: Almost there...
+ ---> PARSER: missing some error controls.
+
+ ---> executor:
+		--> pipes.c TODO
+		--> rediretions.c TODO
+
+
+ THINGS TO BE MERGE
+
+ 

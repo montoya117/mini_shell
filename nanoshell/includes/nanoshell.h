@@ -139,7 +139,13 @@ typedef struct s_ast
 	t_ast_list		*children; // for pipe chain
 }	t_ast;
 
-
+// PARSER_STRUCTS
+typedef struct s_parser_context
+{
+	int			error_status; // 0 if is OK, 1 if error is detected
+	const char	*error_message; // message
+	t_token		*error_token; // points to the error token
+} t_parser_context;
 
 // FUNCTIONS
 
@@ -203,13 +209,14 @@ void	setup_signals(void);
 
 //__________    PARSER.C
 t_ast   *parser(t_token **ptokens);
-
+void    set_parser_error(t_parser_context *ctx, const char *message, t_token *token);
+void	ctx_init(t_parser_context *ctx);
 //__________    PARSER_COMMANDS.C
-t_ast	*parser_commands(t_token **ptokens);
-t_ast	*parser_logical(t_token **ptokens);
-t_ast   *parser_pipe(t_token **ptokens);
-t_ast   *parser_subshell(t_token **ptokens);
-t_ast   *parser_command_or_subshell(t_token **ptokens);
+t_ast	*parser_commands(t_token **ptokens, t_parser_context *ctx);
+t_ast	*parser_logical(t_token **ptokens, t_parser_context *ctx);
+t_ast   *parser_pipe(t_token **ptokens, t_parser_context *ctx);
+t_ast   *parser_subshell(t_token **ptokens, t_parser_context *ctx);
+t_ast   *parser_command_or_subshell(t_token **ptokens, t_parser_context *ctx);
 
 //__________    AST_TREE
 //__________    AST_INIT.C
