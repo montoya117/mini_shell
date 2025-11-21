@@ -1,5 +1,90 @@
 
 /*
+Memory Management
+-----------------------------------------
+void ast_free(t_ast *node);             ✅
+Recursively frees an entire AST and its children.
+
+void ast_list_free(t_ast_list *list); ✅
+Recursively frees an AST children list.
+
+Error Handling and Recovery
+------------------------------------------
+void ast_parser_error(const char *msg, t_token *tok);
+Standardizes parser error messages and possibly halts parsing.
+
+*/
+
+#include "nanoshell.h"
+
+// Memory management & free
+// Recursively frees an AST children list.
+void ast_list_free(t_ast_list *list)
+{
+	if (!list)
+		return ;
+	ast_free(list->node);
+	ast_list_free(list->next);
+	free(list);
+}
+
+// free ast_nodes & children
+void ast_free(t_ast *node)
+{
+	if (!node)
+		return ;
+	ast_free(node->left);
+	ast_free(node->right);
+	ast_list_free(node->children);
+	free(node->argv);
+	free(node->file);
+	free(node);
+}
+
+// Error Handling
+
+int ft_strlen_const(const char *str)
+{
+    int i;
+
+    i = 0;
+    while(str[i])
+        i++;
+    return (i);
+}
+
+void ast_parser_error(const char *message, t_token *token)
+{
+    const char  *prefix;
+    const char  *errstr;
+
+    prefix = "Parse error: ";
+    errstr = NULL;
+    // Print your base error message 
+    write(2, prefix, ft_strlen_const(prefix));
+    if (message)
+        write (2, message, ft_strlen_const(message));
+    // If there's a token, print info about it
+    if (token)
+    {
+        write (2, " at token '", 11);
+        if (token->text)
+            write (2, token->text, ft_strlen_const(token->text));
+        write (2, "'\n", 2);
+    }
+    else
+        write (2, " at the end of input\n", 18);
+	// If errno is set, print details
+    if (errno != 0)
+    {
+        errstr = strerror(errno);
+        write (2, "System error: ", 14);
+        write(2, errstr, ft_strlen_const(errstr));
+        write(2, "\n", 1);
+    }
+}
+
+/*
 // Main AST node for shell commands, pipes, redirects, logic, subshells
 typedef struct s_ast {
     AST_TYPE type;          // What type of AST node this is
@@ -133,7 +218,102 @@ t_ast *ast_new_subshell(t_ast *child)
     return (node);
 }
 /*
----> RECOMENDED HELPERS
+Debugging / Printing ASTs
+-----------------------------------------
+void ast_print(const t_ast *root, int indent);
+Prints the AST structure for debugging (indentation shows depth).
+(You might want optional colored output for clarity.)
+*/
+
+#include "nanoshell.h"
+
+// Debugging / Printing ASTs & Tokens
+const char *ast_to_string(const AST_TYPE type)
+{
+    if (type == AST_COMMAND)
+        return (C"Command"RST);
+    else if (type == AST_PIPE)
+        return (G"Pipe"RST);
+    else if (type == AST_REDIRECT)
+        return (RED"Redirection"RST);
+    else if (type == AST_AND)
+        return (Y"And"RST);
+    else if (type == AST_OR)
+        return (Y"Or"RST);
+    else if (type == AST_SUBSHELL)
+        return (M"Subshell"RST);
+    else
+        return ("Unknown");
+}
+
+void ast_print(const t_ast *root, int indent)
+{
+	int         i;
+    int         j;
+    int         k;
+	t_ast_list  *current; 
+
+	if (!root)
+		return ;
+	// print indetation space
+	i = 0;
+	while (i < indent)
+	{
+		printf(" ");
+		i++;
+	}
+	// print node info
+    printf("AST TYPE --> %s\n", ast_to_string(root->type));
+	if (root->type == AST_COMMAND && root->argv)
+    {
+        j = 0;
+        while (root->argv[j])
+        {
+            k = 0;
+            while ( k < indent + 2)
+            {
+                printf(" ");
+                k++;
+            }
+            printf("argv[%d]: %s\n", j, root->argv[j]);
+            j++;
+        }
+    }
+    // Print left/right children deopending on type
+    ast_print(root->left, indent + 2);
+    ast_print(root->right, indent + 2);
+	// Print list of children depending on type
+    current = root->children;
+    while(current)
+    {
+        ast_print(current->node, indent + 2);
+        current =  current->next;
+    }
+}/*
+Token Utilities (in Parser)
+------------------------------
+t_token *token_next_word(t_token *tok);
+Skips non-word tokens, returns next word token.
+
+t_token *token_skip_until(t_token *tok, t_token_type type);
+Skips tokens until it finds a desired type (e.g., pipe, redirect).
+*/
+
+#include "nanoshell.h"
+
+t_token *token_next_word(t_token *token)
+{
+    while (token && token->type != TOKEN_WORD)
+        token = token->next;
+    return (token);
+}
+
+t_token *token_skip_until(t_token *token, t_token_type type)
+{
+    while (token && token->type != type)
+        token = token->next;
+    return (token);
+}/*
 
 AST List Management (for N-ary nodes)
 ----------------------------------------
@@ -143,40 +323,11 @@ Creates a new list node.
 t_ast_list *ast_list_append(t_ast_list *head, t_ast *node); ✅
 Appends a node to the end of a children list.
 
-void ast_list_free(t_ast_list *list); ✅
-Recursively frees an AST children list.
-
 Command Argument Utilities
 -----------------------------------------
 int ast_count_args(char **argv);          ✅
 Returns argument count for a command's argv.
 
-Memory Management
------------------------------------------
-void ast_free(t_ast *node);             ✅
-Recursively frees an entire AST and its children.
-
-Debugging / Printing ASTs
------------------------------------------
-void ast_print(const t_ast *root, int indent);
-Prints the AST structure for debugging (indentation shows depth).
-(You might want optional colored output for clarity.)
-
-Error Handling and Recovery
-------------------------------------------
-void ast_parser_error(const char *msg, t_token *tok);
-Standardizes parser error messages and possibly halts parsing.
-
-
-???????????????????????????????????????????????????
-Token Utilities (in Parser)
-------------------------------
-t_token *token_next_word(t_token *tok);
-Skips non-word tokens, returns next word token.
-
-t_token *token_skip_until(t_token *tok, t_token_type type);
-Skips tokens until it finds a desired type (e.g., pipe, redirect).
-(Speeds up command grouping in parser logic.)
 */
 
 #include "nanoshell.h"
@@ -215,7 +366,7 @@ t_ast_list *ast_list_append(t_ast_list *head, t_ast *node)
 	return (head);
 }
 
-// count childrens
+// for commands
 int ast_count_args(char **argv)
 {
     int count;
@@ -225,30 +376,6 @@ int ast_count_args(char **argv)
         count++;
     return (count);
 
-}
-
-// Memory management & free
-// Recursively frees an AST children list.
-void ast_list_free(t_ast_list *list)
-{
-	if (!list)
-		return ;
-	ast_free(list->node);
-	ast_list_free(list->next);
-	free(list);
-}
-
-// free ast_nodes & children
-void ast_free(t_ast *node)
-{
-	if (!node)
-		return ;
-	ast_free(node->left);
-	ast_free(node->right);
-	ast_list_free(node->children);
-	free(node->argv);
-	free(node->file);
-	free(node);
 }
 
 
@@ -902,10 +1029,16 @@ int	main(int ac, char **av, char **ev)
 			continue ;
 		}
 		tokens_print_simple(tokens);
+		
+		// parser & AST
+		t_ast *tree = parser(&tokens);
+		if (tree)
+		{
+			ast_print(tree, 0);
+			ast_free(tree);
+		} 
 		free_tokens(tokens);
-		// Your parser/executor calls...
-        free(line);
-        
+        free(line); 
 	}
 	write_history(".nanoshell_history"); // Save session history
 	return (0);
@@ -1226,7 +1359,312 @@ void	execute_cmd(char *line_cmd, char **ev)
         _exit(127);
     }
 }
-*//*
+*/
+
+#include "nanoshell.h"
+
+void	set_parser_error(t_parser_context *ctx, const char *message, t_token *token)
+{
+	ctx->error_status = 1;
+    ctx->error_message = message;
+    ctx->error_token = token;
+    ast_parser_error(ctx->error_message, token);
+}
+
+void	ctx_init(t_parser_context *ctx)
+{
+	ctx->error_status = 0;
+	ctx->error_message = NULL;
+	ctx->error_token = NULL;
+}
+
+t_ast   *parser(t_token **ptokens)
+{
+	t_parser_context	ctx;
+	t_ast				*tree;
+
+	ctx_init(&ctx);
+    tree = parser_logical(ptokens,  &ctx);
+	
+	// check for parse errors
+	if (ctx.error_status)
+	{
+		ast_parser_error(ctx.error_message, ctx.error_token);
+		if (tree)
+			ast_free(tree);
+		return (NULL);
+	}
+	// check for leftover (unexpected) tokens
+	if (*ptokens != NULL)
+	{
+		set_parser_error(&ctx, "unexpected extra input", *ptokens);
+		ast_parser_error(ctx.error_message, ctx.error_token);
+		if (tree)
+            ast_free(tree);
+        return (NULL);
+	}
+	return (tree);
+}
+
+
+#include "nanoshell.h"
+/*
+// Utility: error handling wrapper
+void set_parser_error(t_parser_context *ctx, const char *message, t_token *token)
+{
+    ctx->error_status = 1;
+    ctx->message = message;
+    ctx->error_token = token;
+    ast_parser_error(message, token);
+} ✅
+
+// Example in parser_commands:
+t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
+{
+    ...
+    // Check for illegal token at start (e.g., redirection with no command)
+    if (token && (token->type == TOKEN_REDIR_IN
+        || token->type == TOKEN_REDIR_OUT
+        || token->type == TOKEN_REDIR_APPEND
+        || token->type == TOKEN_HEREDOC))
+    {
+        set_parser_error(ctx, "redirection without command", token);
+        return NULL;
+    }✅
+    ...
+    // Later, on missing filename after redirection:
+    if (!token || token->type != TOKEN_WORD)
+    {
+        set_parser_error(ctx, "missing file name after redirection", token);
+        return NULL;
+    }✅
+    ...
+    // At end: check for garbage tokens after valid command
+    if (token && token->type != TOKEN_PIPE && / no more expected tokens /)
+    {
+        set_parser_error(ctx, "unexpected token after command", token);
+        return NULL;
+    }
+    ...
+}
+
+// Example in parser_pipe:
+t_ast *parser_pipe(t_token **ptokens, t_parser_context *ctx)
+{
+    ...
+    while (token && token->type == TOKEN_PIPE)
+    {
+        token = token->next;
+        if (!token || (token->type != TOKEN_WORD && token->type != TOKEN_LPAREN))
+        {
+            set_parser_error(ctx, "expected command after pipe", token);
+            return NULL;
+        }
+        ...
+    }
+    ...
+} ✅
+
+// Example in parser_logical:
+t_ast *parser_logical(t_token **ptokens, t_parser_context *ctx)
+{
+    ...
+    while (token && (token->type == TOKEN_AND || token->type == TOKEN_OR))
+    {
+        token = token->next;
+        if (!token)
+        {
+            set_parser_error(ctx, "operator at end of input", token);
+            return NULL;
+        }
+        ...
+    }
+    ...
+} ✅
+
+// At very top-level, handle end-of-input garbage
+t_ast *parser(t_token **ptokens, t_parser_context *ctx)
+{
+    t_ast *tree = parser_logical(ptokens, ctx);
+    if (ctx->error_status)
+        return NULL;
+    if (*ptokens != NULL)
+    {
+        set_parser_error(ctx, "unexpected extra input", *ptokens);
+        return NULL;
+    }
+    return tree;
+}
+
+*/
+// Check ctx->error_status after each parsing step, and early-return if an error is detected.
+
+t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
+{
+    int             argc;
+    int             i;
+    char            **argv;
+    t_token         *token;
+    t_token_type    redirect_type;
+    t_ast           *cmd;
+	
+	token = *ptokens;
+	// check for redirections without prvious command
+	if (token && (token->type == TOKEN_REDIR_IN
+        || token->type == TOKEN_REDIR_OUT
+        || token->type == TOKEN_REDIR_APPEND
+        || token->type == TOKEN_HEREDOC))
+	{
+		set_parser_error(ctx,  "redirection, without command", token);
+		return (NULL);
+	}
+	// count words and expansions
+    argc = 0;
+    while (token && (token->type == TOKEN_WORD || token->type == TOKEN_EXPANSION))
+    {
+        argc++;
+        token = token->next;
+    }
+    // collect and malloc arguments
+    argv = safe_malloc((argc + 1) * sizeof(char*));
+    token = *ptokens;
+    i = 0;
+    while (token && (token->type == TOKEN_WORD || token->type == TOKEN_EXPANSION))
+    {
+        argv[i] = token->text;
+        i++;
+        token = token->next;
+    }
+    argv[i] = NULL;
+    cmd = ast_new_command(argv);
+    
+    //  if more tokens, look for rediretions 
+    while (token && (token->type == TOKEN_REDIR_IN
+        || token->type == TOKEN_REDIR_OUT 
+        || token->type == TOKEN_REDIR_APPEND
+        || token->type == TOKEN_HEREDOC))
+    {
+        redirect_type = token->type;
+        token = token->next;
+        // make sure it comes a file after the redirection if not handle
+        if (!token || token->type != TOKEN_WORD)
+        {
+			set_parser_error(ctx, "missing file name after redirection", token);
+            return (NULL);
+        }
+        cmd = ast_new_redirect(cmd, token->text, redirect_type);
+        token = token->next;
+    }
+    *ptokens = token;
+    return (cmd);
+}
+
+t_ast	*parser_logical(t_token **ptokens, t_parser_context *ctx)
+{
+	t_token			*token;
+	t_token_type	logic_type;
+	t_ast			*left;
+	t_ast			*right;
+
+    left = parser_pipe(ptokens, ctx);
+	if (ctx->error_status)
+		return (NULL);
+	token = *ptokens;
+	while (token && (token->type == TOKEN_AND || token->type == TOKEN_OR))
+    {
+        logic_type = token->type;
+        token = token->next;
+		if (!token)
+		{
+			set_parser_error(ctx,  "operator at end of input", token);
+			return (NULL);
+		}
+        right = parser_pipe(&token, ctx);
+		if (ctx->error_status)
+			return (NULL);
+        if (logic_type == TOKEN_AND)
+            left = ast_new_and(left, right);
+        else if (logic_type == TOKEN_OR)
+            left = ast_new_or(left, right);
+    }
+    *ptokens = token;
+    return (left);
+}
+
+
+t_ast   *parser_pipe(t_token **ptokens, t_parser_context *ctx)
+{
+    t_token			*token;
+    t_ast           *pipe_node;
+	t_ast			*left;
+	t_ast			*right;
+    t_ast_list      *pipe_list;
+
+    left = parser_command_or_subshell(ptokens, ctx);
+	if (ctx->error_status)
+        return (NULL);
+    token = *ptokens;
+    pipe_list = ast_list_new(left);
+    while (token && token->type == TOKEN_PIPE)
+    {
+        token = token->next;
+		if (!token || (token->type != TOKEN_WORD && token->type != TOKEN_LPAREN))
+		{
+			set_parser_error(ctx, "expected command after pipe", token);
+			return (NULL);
+		}
+        right  = parser_command_or_subshell(&token, ctx);
+		if (ctx->error_status)
+			return (NULL);
+        // create new list with left, add right.. create the ast_pipe with this
+        pipe_list = ast_list_append(pipe_list, right);
+    }
+    *ptokens = token;
+    pipe_node = ast_new_pipe(pipe_list);
+    return (pipe_node);
+}
+
+t_ast   *parser_subshell(t_token **ptokens, t_parser_context *ctx)
+{
+    t_token *token;
+    t_ast   *subshell;
+    t_ast   *cmd;
+    
+    token = *ptokens;
+    cmd = NULL;
+    if (token && token->type == TOKEN_LPAREN)
+    {
+        token = token->next; // Skip the '('
+        subshell = parser(&token);
+		if (ctx->error_status)
+            return (NULL);
+        if (!token || token->type != TOKEN_RPAREN)
+        {
+			set_parser_error(ctx, "missing the ')'", token);
+            return (NULL);
+        }
+        token = token->next; // Skip the ')'
+        cmd = ast_new_subshell(subshell);
+    }
+    *ptokens = token;
+    return (cmd);
+}
+
+t_ast   *parser_command_or_subshell(t_token **ptokens, t_parser_context *ctx)
+{
+	t_ast	*node;
+
+	node = NULL;
+    if (*ptokens && (*ptokens)->type == TOKEN_LPAREN)
+		node = parser_subshell(ptokens, ctx);
+    else
+		node = parser_commands(ptokens, ctx);
+	
+	if (ctx->error_status)
+		return (NULL);
+	return (node);
+}
+/*
  ▄▄▄██▀▀▀    ▄▄▄          ██▒   █▓    ██▓   ▓█████     ██▀███  
    ▒██      ▒████▄       ▓██░   █▒   ▓██▒   ▓█   ▀    ▓██ ▒ ██▒
    ░██      ▒██  ▀█▄      ▓██  █▒░   ▒██▒   ▒███      ▓██ ░▄█ ▒
@@ -1642,9 +2080,9 @@ t_token	*make_error_token_from_ctx(size_t start, const char *msg, t_word_ctx *ct
 
 #include "nanoshell.h"
 
-static t_quote_type	quote_type_from_flags(int seen_single, int seen_double)
+static t_quote_type quote_type_from_flags(int seen_single, int seen_double, int seen_unquoted)
 {
-	if (seen_single && seen_double||
+	if ((seen_single && seen_double) ||
 	    (seen_single && seen_unquoted) ||
 	    (seen_double && seen_unquoted))
 		return (QT_MIXED);
@@ -1652,6 +2090,8 @@ static t_quote_type	quote_type_from_flags(int seen_single, int seen_double)
 		return (QT_SINGLE);
 	if (seen_double)
 		return (QT_DOUBLE);
+	if (seen_unquoted)
+		return (QT_NONE);
 	return (QT_NONE);
 }
 

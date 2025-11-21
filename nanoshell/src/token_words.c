@@ -47,6 +47,7 @@ static t_token *build_word_token(const char *line, size_t *i, size_t len, size_t
 
     ctx.seen_single = 0;
     ctx.seen_double = 0;
+    ctx.seen_unquoted = 0;
     buf_init(&ctx.buf);
 
     rc = process_chars_ctx(&ctx, line, i, len, last_status);

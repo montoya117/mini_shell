@@ -201,6 +201,17 @@ char *ft_strndup(const char *s, size_t n);
 //_______   PROCES_CHARS_CTX.C
 int process_chars_ctx(t_word_ctx *ctx, const char *line,
                              size_t *i, size_t len, int last_status);
+int handle_single_quote(t_word_ctx *ctx, const char *line, size_t *i, size_t len);
+int handle_double_quote(t_word_ctx *ctx, const char *line,
+                              size_t *i, size_t len, int last_status);
+int handle_dollar(t_word_ctx *ctx, const char *line,
+                              size_t *i, size_t len, int last_status);
+int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i);
+
+//______    PROCECES_CHARS_CTX_HANDLERS.C
+int handle_backslash_outside(t_word_ctx *ctx, const char *line, size_t *i, size_t len);
+int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int last_status);
+
 
 //_________		SIGNALS.C
 void	setup_signals(void);

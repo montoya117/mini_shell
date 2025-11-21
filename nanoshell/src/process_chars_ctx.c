@@ -8,12 +8,14 @@
  ▒ ░▒░        ▒   ▒▒ ░      ░ ░░      ▒ ░    ░ ░  ░     ░▒ ░ ▒░
  ░ ░ ░        ░   ▒           ░░      ▒ ░      ░        ░░   ░ 
  ░   ░            ░  ░         ░      ░        ░  ░      ░     
+
+proces_char_ctx.c
                               ░                                
 */
 
 #include "nanoshell.h"
 
-static int handle_single_quote(t_word_ctx *ctx, const char *line,
+int handle_single_quote(t_word_ctx *ctx, const char *line,
                                size_t *i, size_t len)
 {
 	if (!ctx || !line || !i)
@@ -26,7 +28,7 @@ static int handle_single_quote(t_word_ctx *ctx, const char *line,
 }
 
 
-static int handle_double_quote(t_word_ctx *ctx, const char *line,
+int handle_double_quote(t_word_ctx *ctx, const char *line,
                                size_t *i, size_t len, int last_status)
 {
 	if (!ctx || !line || !i)
@@ -38,7 +40,7 @@ static int handle_double_quote(t_word_ctx *ctx, const char *line,
 	return (0);
 }
 
-static int handle_dollar(t_word_ctx *ctx, const char *line,
+int handle_dollar(t_word_ctx *ctx, const char *line,
                          size_t *i, size_t len, int last_status)
 {
 	if (!ctx || !line || !i)
@@ -48,7 +50,7 @@ static int handle_dollar(t_word_ctx *ctx, const char *line,
 	return (0);
 }
 
-static int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i)
+int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i)
 {
 	if (!ctx || !line || !i)
 		return (-3);
@@ -62,21 +64,12 @@ static int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i)
 int process_chars_ctx(t_word_ctx *ctx, const char *line,
                              size_t *i, size_t len, int last_status)
 {
-	char	c;
-	int		rc;
+	int rc;
 
 	while (*i < len && !is_space((char)line[*i]) &&
 		   !is_operator((char)line[*i]))
 	{
-		c = line[*i];
-		if (c == '\'')
-			rc = handle_single_quote(ctx, line, i, len);
-		else if (c == '"')
-			rc = handle_double_quote(ctx, line, i, len, last_status);
-		else if (c == '$')
-			rc = handle_dollar(ctx, line, i, len, last_status);
-		else
-			rc = handle_regular_char(ctx, line, i);
+		rc = dispatch_char(ctx, line, i, len, last_status);
 		if (rc != 0)
 			return (rc);
 	}

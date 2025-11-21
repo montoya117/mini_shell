@@ -117,6 +117,16 @@ char	*buf_release(t_buf *buf)
 
 	if (!buf)
 		return (NULL);
+	if (buf->data == NULL)
+	{
+		ret = malloc(1);
+		if (!ret)
+			return (NULL);
+		ret[0] = '\0';
+		buf->len = 0;
+		buf->cap = 0;
+		return (ret);
+	}
 	ret = buf->data;
 	buf->data = NULL;
 	buf->len = 0;
