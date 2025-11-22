@@ -15,6 +15,52 @@ PROCES_CHARS_CTS_HANDLERS.C
 
 #include "nanoshell.h"
 
+/* Dispatch con trazas
+
+int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int last_status)
+{
+    char c = line[*i];
+    fprintf(stderr, "[DBG] dispatch at i=%zu char='%c' (0x%02x)\n", *i, c, (unsigned char)c);
+    dbg_buf_print(ctx);
+
+    if (c == '\'')
+    {
+        int rc = handle_single_quote(ctx, line, i, len);
+        fprintf(stderr, "[DBG] after handle_single_quote -> rc=%d i=%zu\n", rc, *i);
+        dbg_buf_print(ctx);
+        return rc;
+    }
+    if (c == '"')
+    {
+        int rc = handle_double_quote(ctx, line, i, len, last_status);
+        fprintf(stderr, "[DBG] after handle_double_quote -> rc=%d i=%zu\n", rc, *i);
+        dbg_buf_print(ctx);
+        return rc;
+    }
+    if (c == '$')
+    {
+        int rc = handle_dollar(ctx, line, i, len, last_status);
+        fprintf(stderr, "[DBG] after handle_dollar -> rc=%d i=%zu\n", rc, *i);
+        dbg_buf_print(ctx);
+        return rc;
+    }
+    if (c == '\\')
+    {
+        int rc = handle_backslash_outside(ctx, line, i, len);
+        fprintf(stderr, "[DBG] after handle_backslash_outside -> rc=%d i=%zu\n", rc, *i);
+        dbg_buf_print(ctx);
+        return rc;
+    }
+    {
+        int rc = handle_regular_char(ctx, line, i);
+        fprintf(stderr, "[DBG] after handle_regular_char -> rc=%d i=%zu appended='%c'\n",
+                rc, *i, (unsigned char)line[(*i>0)?(*i-1):0]);
+        dbg_buf_print(ctx);
+        return rc;
+    }
+}
+*/
+
 int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int last_status)
 {
     char c = line[*i];

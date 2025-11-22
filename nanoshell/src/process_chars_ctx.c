@@ -61,6 +61,38 @@ int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i)
 	return (0);
 }
 
+
+
+
+
+void dbg_buf_print(const t_word_ctx *ctx)
+{
+    const char *d = ctx->buf.data ? ctx->buf.data : "(null)";
+    fprintf(stderr, "[DBG] buf=\"%s\" seen_s=%d seen_d=%d seen_u=%d\n",
+            d, ctx->seen_single, ctx->seen_double, ctx->seen_unquoted);
+}
+
+/* Loop principal con trazas
+int process_chars_ctx(t_word_ctx *ctx, const char *line,
+                             size_t *i, size_t len, int last_status)
+{
+    int rc;
+    fprintf(stderr, "[DBG] process_chars_ctx start i=%zu len=%zu\n", *i, len);
+    while (*i < len && !is_space((char)line[*i]) &&
+           !is_operator((char)line[*i]))
+    {
+        rc = dispatch_char(ctx, line, i, len, last_status);
+        if (rc != 0)
+        {
+            fprintf(stderr, "[DBG] process_chars_ctx returning rc=%d i=%zu\n", rc, *i);
+            return (rc);
+        }
+    }
+    fprintf(stderr, "[DBG] process_chars_ctx done i=%zu\n", *i);
+    return (0);
+}
+
+*/
 int process_chars_ctx(t_word_ctx *ctx, const char *line,
                              size_t *i, size_t len, int last_status)
 {

@@ -543,6 +543,16 @@ char	*buf_release(t_buf *buf)
 
 	if (!buf)
 		return (NULL);
+	if (buf->data == NULL)
+	{
+		ret = malloc(1);
+		if (!ret)
+			return (NULL);
+		ret[0] = '\0';
+		buf->len = 0;
+		buf->cap = 0;
+		return (ret);
+	}
 	ret = buf->data;
 	buf->data = NULL;
 	buf->len = 0;
@@ -1674,12 +1684,14 @@ t_ast   *parser_command_or_subshell(t_token **ptokens, t_parser_context *ctx)
  ▒ ░▒░        ▒   ▒▒ ░      ░ ░░      ▒ ░    ░ ░  ░     ░▒ ░ ▒░
  ░ ░ ░        ░   ▒           ░░      ▒ ░      ░        ░░   ░ 
  ░   ░            ░  ░         ░      ░        ░  ░      ░     
+
+proces_char_ctx.c
                               ░                                
 */
 
 #include "nanoshell.h"
 
-static int handle_single_quote(t_word_ctx *ctx, const char *line,
+int handle_single_quote(t_word_ctx *ctx, const char *line,
                                size_t *i, size_t len)
 {
 	if (!ctx || !line || !i)
@@ -1692,7 +1704,7 @@ static int handle_single_quote(t_word_ctx *ctx, const char *line,
 }
 
 
-static int handle_double_quote(t_word_ctx *ctx, const char *line,
+int handle_double_quote(t_word_ctx *ctx, const char *line,
                                size_t *i, size_t len, int last_status)
 {
 	if (!ctx || !line || !i)
@@ -1704,7 +1716,7 @@ static int handle_double_quote(t_word_ctx *ctx, const char *line,
 	return (0);
 }
 
-static int handle_dollar(t_word_ctx *ctx, const char *line,
+int handle_dollar(t_word_ctx *ctx, const char *line,
                          size_t *i, size_t len, int last_status)
 {
 	if (!ctx || !line || !i)
@@ -1714,7 +1726,7 @@ static int handle_dollar(t_word_ctx *ctx, const char *line,
 	return (0);
 }
 
-static int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i)
+int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i)
 {
 	if (!ctx || !line || !i)
 		return (-3);
@@ -1725,28 +1737,144 @@ static int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i)
 	return (0);
 }
 
+
+
+
+
+void dbg_buf_print(const t_word_ctx *ctx)
+{
+    const char *d = ctx->buf.data ? ctx->buf.data : "(null)";
+    fprintf(stderr, "[DBG] buf=\"%s\" seen_s=%d seen_d=%d seen_u=%d\n",
+            d, ctx->seen_single, ctx->seen_double, ctx->seen_unquoted);
+}
+
+/* Loop principal con trazas
 int process_chars_ctx(t_word_ctx *ctx, const char *line,
                              size_t *i, size_t len, int last_status)
 {
-	char	c;
-	int		rc;
+    int rc;
+    fprintf(stderr, "[DBG] process_chars_ctx start i=%zu len=%zu\n", *i, len);
+    while (*i < len && !is_space((char)line[*i]) &&
+           !is_operator((char)line[*i]))
+    {
+        rc = dispatch_char(ctx, line, i, len, last_status);
+        if (rc != 0)
+        {
+            fprintf(stderr, "[DBG] process_chars_ctx returning rc=%d i=%zu\n", rc, *i);
+            return (rc);
+        }
+    }
+    fprintf(stderr, "[DBG] process_chars_ctx done i=%zu\n", *i);
+    return (0);
+}
+
+*/
+int process_chars_ctx(t_word_ctx *ctx, const char *line,
+                             size_t *i, size_t len, int last_status)
+{
+	int rc;
 
 	while (*i < len && !is_space((char)line[*i]) &&
 		   !is_operator((char)line[*i]))
 	{
-		c = line[*i];
-		if (c == '\'')
-			rc = handle_single_quote(ctx, line, i, len);
-		else if (c == '"')
-			rc = handle_double_quote(ctx, line, i, len, last_status);
-		else if (c == '$')
-			rc = handle_dollar(ctx, line, i, len, last_status);
-		else
-			rc = handle_regular_char(ctx, line, i);
+		rc = dispatch_char(ctx, line, i, len, last_status);
 		if (rc != 0)
 			return (rc);
 	}
 	return (0);
+}
+/*
+ ▄▄▄██▀▀▀    ▄▄▄          ██▒   █▓    ██▓   ▓█████     ██▀███  
+   ▒██      ▒████▄       ▓██░   █▒   ▓██▒   ▓█   ▀    ▓██ ▒ ██▒
+   ░██      ▒██  ▀█▄      ▓██  █▒░   ▒██▒   ▒███      ▓██ ░▄█ ▒
+▓██▄██▓     ░██▄▄▄▄██      ▒██ █░░   ░██░   ▒▓█  ▄    ▒██▀▀█▄  
+ ▓███▒       ▓█   ▓██▒      ▒▀█░     ░██░   ░▒████▒   ░██▓ ▒██▒
+ ▒▓▒▒░       ▒▒   ▓▒█░      ░ ▐░     ░▓     ░░ ▒░ ░   ░ ▒▓ ░▒▓░
+ ▒ ░▒░        ▒   ▒▒ ░      ░ ░░      ▒ ░    ░ ░  ░     ░▒ ░ ▒░
+ ░ ░ ░        ░   ▒           ░░      ▒ ░      ░        ░░   ░ 
+ ░   ░            ░  ░         ░      ░        ░  ░      ░     
+
+PROCES_CHARS_CTS_HANDLERS.C
+                              ░                                
+*/
+
+#include "nanoshell.h"
+
+/* Dispatch con trazas
+
+int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int last_status)
+{
+    char c = line[*i];
+    fprintf(stderr, "[DBG] dispatch at i=%zu char='%c' (0x%02x)\n", *i, c, (unsigned char)c);
+    dbg_buf_print(ctx);
+
+    if (c == '\'')
+    {
+        int rc = handle_single_quote(ctx, line, i, len);
+        fprintf(stderr, "[DBG] after handle_single_quote -> rc=%d i=%zu\n", rc, *i);
+        dbg_buf_print(ctx);
+        return rc;
+    }
+    if (c == '"')
+    {
+        int rc = handle_double_quote(ctx, line, i, len, last_status);
+        fprintf(stderr, "[DBG] after handle_double_quote -> rc=%d i=%zu\n", rc, *i);
+        dbg_buf_print(ctx);
+        return rc;
+    }
+    if (c == '$')
+    {
+        int rc = handle_dollar(ctx, line, i, len, last_status);
+        fprintf(stderr, "[DBG] after handle_dollar -> rc=%d i=%zu\n", rc, *i);
+        dbg_buf_print(ctx);
+        return rc;
+    }
+    if (c == '\\')
+    {
+        int rc = handle_backslash_outside(ctx, line, i, len);
+        fprintf(stderr, "[DBG] after handle_backslash_outside -> rc=%d i=%zu\n", rc, *i);
+        dbg_buf_print(ctx);
+        return rc;
+    }
+    {
+        int rc = handle_regular_char(ctx, line, i);
+        fprintf(stderr, "[DBG] after handle_regular_char -> rc=%d i=%zu appended='%c'\n",
+                rc, *i, (unsigned char)line[(*i>0)?(*i-1):0]);
+        dbg_buf_print(ctx);
+        return rc;
+    }
+}
+*/
+
+int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int last_status)
+{
+    char c = line[*i];
+
+    if (c == '\'')
+        return (handle_single_quote(ctx, line, i, len));
+    if (c == '"')
+        return (handle_double_quote(ctx, line, i, len, last_status));
+    if (c == '$')
+        return (handle_dollar(ctx, line, i, len, last_status));
+    if (c == '\\')
+        return (handle_backslash_outside(ctx, line, i, len));
+    return (handle_regular_char(ctx, line, i));
+}
+
+int handle_backslash_outside(t_word_ctx *ctx, const char *line, size_t *i, size_t len)
+{
+    ctx->seen_unquoted = 1;
+    (*i)++;
+    if (*i < len)
+    {
+        if (buf_append_char(&ctx->buf, line[*i]) < 0)
+            return (-3);
+        (*i)++;
+        return (0);
+    }
+    if (buf_append_char(&ctx->buf, '\\') < 0)
+        return (-3);
+    return (0);
 }
 #define _XOPEN_SOURCE 700
 #include <signal.h>
@@ -2115,6 +2243,7 @@ static t_token *build_word_token(const char *line, size_t *i, size_t len, size_t
 
     ctx.seen_single = 0;
     ctx.seen_double = 0;
+    ctx.seen_unquoted = 0;
     buf_init(&ctx.buf);
 
     rc = process_chars_ctx(&ctx, line, i, len, last_status);
