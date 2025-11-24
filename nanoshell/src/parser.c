@@ -30,7 +30,6 @@ t_ast   *parser(t_token **ptokens)
 	// check for parse errors
 	if (ctx.error_status)
 	{
-		ast_parser_error(ctx.error_message, ctx.error_token);
 		if (tree)
 			ast_free(tree);
 		return (NULL);
