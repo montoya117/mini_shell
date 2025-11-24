@@ -47,7 +47,7 @@ int	main(int ac, char **av, char **ev)
 	data.running = 0;
 	data.cmd = NULL;
 	data.exit = "exit";
-	
+	data.envp = **ev
 	// 2. Setup signals for Ctrl-C, Ctrl-
 	rl_catch_signals = 0;
 	setup_signals();

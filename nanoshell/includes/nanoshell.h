@@ -57,6 +57,7 @@ typedef struct s_data {
 	int		last_status;
 	char	*cmd;
 	char	*exit;
+	char	**ev;
 }	t_data;
 
 // TOKEN STRUCTS
