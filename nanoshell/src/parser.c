@@ -4,6 +4,8 @@
 
 void	set_parser_error(t_parser_context *ctx, const char *message, t_token *token)
 {
+	if (ctx->error_status)
+		return ;
 	ctx->error_status = 1;
     ctx->error_message = message;
     ctx->error_token = token;

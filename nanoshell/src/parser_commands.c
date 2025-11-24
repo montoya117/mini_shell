@@ -117,13 +117,18 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
         argc++;
         token = token->next;
     }
+	if (argc == 0) 
+	{
+		set_parser_error(ctx, "empty command before operator", token);
+		return NULL;
+	}
     // collect and malloc arguments
     argv = safe_malloc((argc + 1) * sizeof(char*));
     token = *ptokens;
     i = 0;
     while (token && (token->type == TOKEN_WORD || token->type == TOKEN_EXPANSION))
     {
-        argv[i] = token->text;
+        argv[i] = ft_strdup(token->text);
         i++;
         token = token->next;
     }
@@ -144,7 +149,7 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 			set_parser_error(ctx, "missing file name after redirection", token);
             return (NULL);
         }
-        cmd = ast_new_redirect(cmd, token->text, redirect_type);
+        cmd = ast_new_redirect(cmd, ft_strdup(token->text), redirect_type);
         token = token->next;
     }
     *ptokens = token;
@@ -158,10 +163,15 @@ t_ast	*parser_logical(t_token **ptokens, t_parser_context *ctx)
 	t_ast			*left;
 	t_ast			*right;
 
-    left = parser_pipe(ptokens, ctx);
+	token = *ptokens;
+	if (token && (token->type == TOKEN_AND || token->type == TOKEN_OR)) 
+	{
+    	set_parser_error(ctx, "operator at start of input", token);
+    	return NULL;
+	}
+    left = parser_pipe(&token, ctx);
 	if (ctx->error_status)
 		return (NULL);
-	token = *ptokens;
 	while (token && (token->type == TOKEN_AND || token->type == TOKEN_OR))
     {
         logic_type = token->type;
@@ -191,11 +201,16 @@ t_ast   *parser_pipe(t_token **ptokens, t_parser_context *ctx)
 	t_ast			*left;
 	t_ast			*right;
     t_ast_list      *pipe_list;
-
-    left = parser_command_or_subshell(ptokens, ctx);
+	
+	token = *ptokens;
+	if (token && token->type == TOKEN_PIPE)
+	{
+		set_parser_error(ctx, "pipe at start of input", token);
+		return NULL;
+	}
+    left = parser_command_or_subshell(&token, ctx);
 	if (ctx->error_status)
         return (NULL);
-    token = *ptokens;
     pipe_list = ast_list_new(left);
     while (token && token->type == TOKEN_PIPE)
     {
