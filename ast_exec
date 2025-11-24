@@ -1,0 +1,79 @@
+////////	notas //////////
+// skeleton de exec_ast (adaptar a tu proyecto)
+#include "nanoshell.h"
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+/* Prototipos de helpers que deberás implementar */
+int exec_command(t_ast *node);                    // fork + execve, devuelve código de salida
+int exec_pipeline(t_ast *pipe_node);              // ejecuta lista n-aria de comandos en children
+int exec_subshell(t_ast *sub_node);               // fork; en hijo exec_ast(subtree) y exit
+int apply_redirects_and_exec(t_ast *redir_node);  // abre files, dup2 y exec de child
+int exec_ast(t_ast *node);                        // declaración
+
+/* Exec AST: recorrido recursivo que aplica semántica de cada tipo */
+int exec_ast(t_ast *node)
+{
+    int status;
+
+    if (node == NULL)
+        return 0;
+
+    switch (node->type)
+    {
+        case AST_COMMAND:
+            /* nodo hoja: ejecutar comando simple (fork + execve),
+               exec_command debe devolver el exit code (0..255) o mapear señales */
+            return exec_command(node);
+
+        case AST_AND:
+            /* left && right : ejecutar left; si éxito (0) ejecutar right */
+            status = exec_ast(node->left);
+            if (status == 0)
+                return exec_ast(node->right);
+            return status;
+
+        case AST_OR:
+            /* left || right : ejecutar left; si fallo ejecutar right */
+            status = exec_ast(node->left);
+            if (status != 0)
+                return exec_ast(node->right);
+            return status;
+
+        case AST_PIPE:
+            /* pipeline n-aria: montar pipes, fork cada comando, esperar;
+               exec_pipeline se encarga de la semántica y devuelve el status
+               (normalmente del último comando) */
+            return exec_pipeline(node);
+
+        case AST_REDIRECT:
+            /* nodo de redirección: aplicar redirecciones y ejecutar el comando hijo */
+            return apply_redirects_and_exec(node);
+
+        case AST_SUBSHELL:
+            /* subshell: fork; en el hijo ejecutar exec_ast(node->left) y _exit(status);
+               en el padre esperar y devolver el status del hijo */
+            return exec_subshell(node);
+
+        default:
+            fprintf(stderr, "exec_ast: tipo de nodo desconocido\n");
+            return 1;
+    }
+}
+
+/* Notas rápidas:
+ - exec_command: debe fork(); en hijo configurar redirs (si ya se modelan con AST_REDIRECT,
+   puede que no haga nada) y llamar execve() (hacer lookup en PATH o usar tu find_path/execute_cmd).
+   En el padre hacer waitpid() y devolver WEXITSTATUS o mapear señales.
+ - exec_pipeline: si tu AST_PIPE tiene children = lista de t_ast (cada uno AST_COMMAND o maybe AST_REDIRECT),
+   crea N-1 pipes, fork N procesos, dup2 conexiones correctas, close fds innecesarios, y wait a los hijos.
+ - apply_redirects_and_exec: si tu AST_REDIRECT guarda el comando en left y file en node->file,
+   abre el fichero con flags apropiados, dup2 al STDIN/STDOUT según redirect_type, y luego ejecutar left
+   (puede reutilizar exec_ast en el contexto del proceso hijo).
+ - exec_subshell: fork(); en hijo restablecer/ajustar señales, ejecutar exec_ast(node->left) y _exit(status).
+ - Todos los helpers deben devolver códigos coherentes y liberar/describir errores donde aplique.
+ - Asegúrate de la propiedad de strings en los nodos (duplica token->text al construir AST o arregla ownership).
+*/
+
