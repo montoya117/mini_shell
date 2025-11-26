@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/26 12:33:05 by alemonto         ###   ########.fr       */
+/*   Updated: 2025/11/26 13:19:28 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,6 +104,7 @@ int	main(int ac, char **argv, char **envp)
 		if (tree)
 		{
 			ast_print(tree, 0);
+			exec_ast(tree, &data);
 			ast_free(tree);
 		} 
 		free_tokens(tokens);
