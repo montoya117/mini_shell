@@ -3,14 +3,11 @@
 
  This is Javi's & Monty's repo for mini_shell project:
 
- ---> LEXER: Almost there...
- ---> PARSER: missing some error controls.
+ ---> NANOSHELL_V1 -----> LEXER + PARSER
 
- ---> executor:
-		--> pipes.c TODO
-		--> rediretions.c TODO
+ ---> NANOSHELL_V1 -----> LEXER + PARSER + EXECUTTOR
 
 
- THINGS TO BE MERGE
+ THINGS TO DO.......
 
  
