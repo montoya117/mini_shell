@@ -22,7 +22,7 @@ int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int 
     char c = line[*i];
     fprintf(stderr, "[DBG] dispatch at i=%zu char='%c' (0x%02x)\n", *i, c, (unsigned char)c);
     dbg_buf_print(ctx);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
     if (c == '\'')
     {
         int rc = handle_single_quote(ctx, line, i, len);
