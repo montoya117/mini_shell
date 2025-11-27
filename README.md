@@ -8,6 +8,11 @@
  ---> NANOSHELL_V1 -----> LEXER + PARSER + EXECUTTOR
 
 
- THINGS TO DO.......
+ THINGS MONTY TOUCHED.......
+ 
+ --> parser_commands.c
+ --> exec_redir.c
+ --> exec_utils.c
 
+ 
  

@@ -49,8 +49,8 @@ int	exec_ast(t_ast *node, t_data *data)
 		return (exec_or(node, data));
 	//else if (node->type == AST_PIPE)
 		//return (exec_pipeline(node, data));
-	//else if (node->type == AST_REDIRECT)
-		//return (apply_redirects_and_exec(node, data));
+	else if (node->type == AST_REDIRECT)
+		return (apply_redirects_and_exec(node, data));
 	//else if (node->type == AST_SUBSHELL)
 		//return (exec_subshell(node, data));
 	return (1);

@@ -98,6 +98,7 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
     char            **argv;
     t_token         *token;
     t_token_type    redirect_type;
+    char            *redirect_file;
     t_ast           *cmd;
 	
 	token = *ptokens;
@@ -149,7 +150,30 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 			set_parser_error(ctx, "missing file name after redirection", token);
             return (NULL);
         }
-        cmd = ast_new_redirect(cmd, ft_strdup(token->text), redirect_type);
+        // heredoc
+        redirect_file = NULL;
+        if (redirect_type == TOKEN_HEREDOC)
+        {
+            // token->text is the delimeter
+            redirect_file = create_heredoc_tmp(token->text); //TODO
+            if (!redirect_file)
+            {
+                // error
+                set_parser_error(ctx, "heredoc creation failed", token);
+                return (NULL);
+            }
+        }
+        else
+        {
+            // normal redirection
+            redirect_file = ft_strdup(token->text);
+            if (!redirect_file)
+            {
+                set_parser_error(ctx, "memory allocation failed", token);
+                return (NULL);
+            }
+        }
+        cmd = ast_new_redirect(cmd, redirect_file, redirect_type);
         token = token->next;
     }
     *ptokens = token;
