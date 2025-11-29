@@ -21,7 +21,7 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 		// CHILD: set up redirections, then execute node->left
 		/* set fd depending on redirect_type */
 		fd = -1; // default value
-		if (node->type == TOKEN_REDIR_OUT)
+		if (node->redirect_type == TOKEN_REDIR_OUT)
 		{
 			// > Open file for writing, truncating if it exists
 			fd = open(node->file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -37,7 +37,7 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 				_exit(1);
 			}
 		}
-		else if (node->type == TOKEN_REDIR_APPEND)
+		else if (node->redirect_type == TOKEN_REDIR_APPEND)
         {
             // >> Opens file for writing, and if it exists, appends to the end
 			fd = open(node->file, O_WRONLY | O_CREAT | O_APPEND, 0644);
@@ -53,7 +53,7 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 				_exit(1);
 			}		
         }
-		else if (node->type == TOKEN_REDIR_IN)
+		else if (node->redirect_type == TOKEN_REDIR_IN)
         {
 			// < Open file for reading
 			fd = open(node->file, O_RDONLY);
@@ -69,7 +69,7 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 				_exit(1);
 			}
 		}
-		else if (node->type == TOKEN_HEREDOC)
+		else if (node->redirect_type == TOKEN_HEREDOC)
         {
 			// << Prepare a temporary file or pipe
 			// write heredoc content into node->file

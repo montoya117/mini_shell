@@ -105,8 +105,8 @@ int	main(int ac, char **argv, char **envp)
 		t_ast *tree = parser(&tokens);
 		if (tree)
 		{
-			exec_ast(tree, &data);
 			//ast_print(tree, 0);
+			exec_ast(tree, &data);
 			ast_free(tree);
 		} 
 		free_tokens(tokens);

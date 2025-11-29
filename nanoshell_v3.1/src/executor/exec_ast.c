@@ -46,8 +46,15 @@ int	exec_ast(t_ast *node, t_data *data)
 		return (exec_and(node, data));
 	else if (node->type == AST_OR)
 		return (exec_or(node, data));
-	//else if (node->type == AST_PIPE)
-		//return (exec_pipeline(node, data));
+	else if (node->type == AST_PIPE)
+	{
+    	// Single-command pipe list: just execute the only child
+    	if (node->children && !node->children->next)
+        	return exec_ast(node->children->node, data);
+    	// Later you will replace this with exec_pipeline(...)
+    	// for real multi‑command pipes.
+    	//return exec_pipeline(node, data);
+	}	
 	else if (node->type == AST_REDIRECT)
 		return (apply_redirect_and_exec(node, data));
 	//else if (node->type == AST_SUBSHELL)
