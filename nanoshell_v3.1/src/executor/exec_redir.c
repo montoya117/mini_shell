@@ -99,7 +99,7 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 		// PARENT: wait for child and return its status
 		if (waitpid(pid, &status, 0) < 0)
 			return (1);
-		if (node->type == TOKEN_HEREDOC && node->file)
+		if (node->redirect_type == TOKEN_HEREDOC && node->file)
 			unlink(node->file); // delete tmp file
 		if (WIFEXITED(status))
 			return (WEXITSTATUS(status));
