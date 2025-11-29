@@ -108,7 +108,7 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
         || token->type == TOKEN_REDIR_APPEND
         || token->type == TOKEN_HEREDOC))
 	{
-		set_parser_error(ctx,  "redirection, without command", token);
+		set_parser_error(ctx,  "redirection without command", token);
 		return (NULL);
 	}
 	// count words and expansions
@@ -155,7 +155,7 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
         if (redirect_type == TOKEN_HEREDOC)
         {
             // token->text is the delimeter
-            redirect_file = create_heredoc_tmp(token->text); //TODO
+            redirect_file = create_heredoc_tmp(token->text); //TODO 1/2
             if (!redirect_file)
             {
                 // error

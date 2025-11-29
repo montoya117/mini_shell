@@ -37,6 +37,7 @@
 # include <readline/history.h>
 # include <sys/types.h>
 # include <sys/wait.h>
+# include <fcntl.h>
 
 #define Y	"\033[1;33m"
 #define G	"\033[1;32m"
@@ -271,8 +272,13 @@ void	*safe_malloc(size_t size);
 //____________ EXEC_AST.C ______________
 int     exec_ast(t_ast *node, t_data *data);
 
+//____________ EXEC_REDIR.C ______________
+int	apply_redirect_and_exec(t_ast *node, t_data *data);
+
 //___________EXEC_UTILS.C
 void    exec_error(const char *message, const char *arg);
+char *heredoc_tmp_name(void);
+char *create_heredoc_tmp(char *delimeter);
 
 //___________EXEC_COMMAND.C__________
 int     exec_command(t_ast *node, t_data *data);
