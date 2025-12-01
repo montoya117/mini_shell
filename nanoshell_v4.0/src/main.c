@@ -106,7 +106,7 @@ int	main(int ac, char **argv, char **envp)
 		if (tree)
 		{
 			//ast_print(tree, 0);
-			exec_ast(tree, &data);
+			data.last_status = exec_ast(tree, &data);
 			ast_free(tree);
 		} 
 		free_tokens(tokens);

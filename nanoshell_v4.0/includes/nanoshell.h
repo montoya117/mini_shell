@@ -277,13 +277,19 @@ int     exec_ast(t_ast *node, t_data *data);
 //____________ EXEC_REDIR.C ______________
 int	apply_redirect_and_exec(t_ast *node, t_data *data);
 
+//___________EXEC_COMMAND.C__________
+int 	wait_for_child(pid_t pid);
+void	exec_child(t_ast *node, t_data *data);
+void	reset_sig_in_child(void);
+int     exec_command(t_ast *node, t_data *data);
+
+//___________EXEC_SUBSHELL.C__________
+int exec_subshell(t_ast *node, t_data *data);
+
 //___________EXEC_UTILS.C
 void    exec_error(const char *message, const char *arg);
 char *heredoc_tmp_name(void);
 char *create_heredoc_tmp(char *delimeter);
-
-//___________EXEC_COMMAND.C__________
-int     exec_command(t_ast *node, t_data *data);
 
 //__________FIND_PATH.C_______
 char    *find_path(char *cmd, char **envp);

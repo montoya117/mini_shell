@@ -6,6 +6,7 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 	int		fd;
 	pid_t	pid;
 	int		status;
+	int		ret;
 
 	if (!node || !node->left)
 		return (1);
@@ -28,13 +29,13 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 			if (fd < 0)
 			{
 				exec_error("open failed", node->file);
-				_exit(1);
+				exit(1);
 			}
 			if (dup2(fd, STDOUT_FILENO) < 0)
 			{
 				exec_error("dup2 failed", node->file);
 				close(fd);
-				_exit(1);
+				exit(1);
 			}
 		}
 		else if (node->redirect_type == TOKEN_REDIR_APPEND)
@@ -44,13 +45,13 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 			if (fd < 0)
 			{
 				exec_error("open failed", node->file);
-				_exit(1);
+				exit(1);
 			}
 			if (dup2(fd, STDOUT_FILENO) < 0)
 			{
 				exec_error("dup2 failed", node->file);
 				close(fd);
-				_exit(1);
+				exit(1);
 			}		
         }
 		else if (node->redirect_type == TOKEN_REDIR_IN)
@@ -60,13 +61,13 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 			if (fd < 0)
 			{
 				exec_error("open failed", node->file);
-				_exit(1);
+				exit(1);
 			}
 			if (dup2(fd, STDIN_FILENO) < 0)
 			{
 				exec_error("dup2 failed", node->file);
 				close(fd);
-				_exit(1);
+				exit(1);
 			}
 		}
 		else if (node->redirect_type == TOKEN_HEREDOC)
@@ -77,14 +78,14 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 			if (fd < 0)
 			{
 				exec_error("open failed", node->file);
-				_exit(1);
+				exit(1);
 			}
 			// The command will read its input from your heredoc, not from the terminal
 			if (dup2(fd, STDIN_FILENO) < 0)
 			{
 				exec_error("dup2 failed", node->file);
 				close(fd);
-				_exit(1);
+				exit(1);
 			}
 		}
 		/* only close if it was actually opened */
@@ -92,18 +93,15 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 			close(fd);
 		// now run the node->left command/subtree
 		status = exec_ast(node->left, data);
-		_exit(status);
+		exit(status);
 	}
 	else
 	{
 		// PARENT: wait for child and return its status
-		if (waitpid(pid, &status, 0) < 0)
-			return (1);
+		ret = wait_for_child(pid);
 		if (node->redirect_type == TOKEN_HEREDOC && node->file)
 			unlink(node->file); // delete tmp file
-		if (WIFEXITED(status))
-			return (WEXITSTATUS(status));
-		// map signals, or just:
-    	return (1);
+		data->last_status = ret;
+    	return (data->last_status);
 	}
 }	

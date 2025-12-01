@@ -15,7 +15,7 @@
 
 #include "nanoshell.h"
 
-static int  wait_for_child(pid_t pid)
+int  wait_for_child(pid_t pid)
 {
     int status;
     int ret;
@@ -35,29 +35,29 @@ static int  wait_for_child(pid_t pid)
 }
 // +128 para distinguir fallo por señal \ fallo por exit code.
 
-static void reset_sig_in_child(void)
+void reset_sig_in_child(void)
 {
     signal(SIGINT, SIG_DFL);
     signal(SIGQUIT, SIG_DFL);
 }
 
-static void exec_child(t_ast *node, t_data *data)
+void exec_child(t_ast *node, t_data *data)
 {
     char    *path;
 
     if (!node || !node->argv || !node->argv[0])
-        _exit(127);
+        exit(127);
     path = find_path((char *)node->argv[0], data->envp);
     if (!path)
     {
         exec_error("command not found", node->argv[0]);
-        _exit(127);
+        exit(127);
     }
     reset_sig_in_child();
     execve(path, node->argv, data->envp);
     perror("execve");
     free(path);    
-    _exit(127);
+    exit(127);
 }
 
 int exec_command(t_ast *node, t_data *data)
