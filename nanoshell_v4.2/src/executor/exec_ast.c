@@ -52,8 +52,8 @@ int	exec_ast(t_ast *node, t_data *data)
 		status = exec_pipeline(node, data);
 	else if (node->type == AST_REDIRECT)
 		status = apply_redirect_and_exec(node, data);
-	//else if (node->type == AST_SUBSHELL)
-		//return (exec_subshell(node, data));
+	else if (node->type == AST_SUBSHELL)
+		return (exec_subshell(node, data));
 	else
 		status = 1;
 	data->last_status = status;

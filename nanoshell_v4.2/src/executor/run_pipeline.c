@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/29 11:59:11 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/29 13:54:47 by jadelgad         ###   ########.fr       */
+/*   Updated: 2025/12/03 12:00:37 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ pid_t spawn_child(t_ast *cmd, int in_fd, int out_fd, t_data *data)
 			close(out_fd);
 
 		if (data)
-			child_exec(cmd, data->envp);
+			exec_ast(cmd, data);
 		else
 			child_exec(cmd, NULL);
 		_exit(127);
