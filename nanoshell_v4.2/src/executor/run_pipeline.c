@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/29 11:59:11 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/12/03 12:00:37 by alemonto         ###   ########.fr       */
+/*   Updated: 2025/12/03 13:19:29 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,8 @@ static void child_reset_signals(void)
 
 pid_t spawn_child(t_ast *cmd, int in_fd, int out_fd, t_data *data)
 {
-	pid_t pid;
+	pid_t	pid;
+	int		status;
 
 	pid = fork();
 	if (pid < 0)
@@ -95,10 +96,18 @@ pid_t spawn_child(t_ast *cmd, int in_fd, int out_fd, t_data *data)
 			close(out_fd);
 
 		if (data)
-			exec_ast(cmd, data);
+		{
+			if (cmd->type == AST_REDIRECT)
+				status = apply_redirect_and_exec_child(cmd, data);
+			else
+				status = exec_ast(cmd, data);
+			exit(status);
+		}
 		else
+		{
 			child_exec(cmd, NULL);
-		_exit(127);
+			exit(127);
+		}
 	}
 	return (pid);
 }
