@@ -155,7 +155,7 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
         if (redirect_type == TOKEN_HEREDOC)
         {
             // token->text is the delimeter
-            redirect_file = create_heredoc_tmp(token->text); //TODO 1/2
+            redirect_file = create_heredoc_tmp(token->text);
             if (!redirect_file)
             {
                 // error
@@ -235,6 +235,12 @@ t_ast   *parser_pipe(t_token **ptokens, t_parser_context *ctx)
     left = parser_command_or_subshell(&token, ctx);
 	if (ctx->error_status)
         return (NULL);
+	// / No pipe: just return the node we got (AST_COMMAND, AST_REDIRECT, AST_SUBSHELL)
+	if (!token || token->type != TOKEN_PIPE)
+	{
+		*ptokens = token;
+		return (left);
+	}
     pipe_list = ast_list_new(left);
     while (token && token->type == TOKEN_PIPE)
     {

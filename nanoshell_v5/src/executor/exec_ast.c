@@ -42,8 +42,7 @@ int exec_ast_in_child(t_ast *node, t_data *data)
 
     if (!node)
         return (0);
-    fprintf(stderr, "DEBUG exec_ast: node->type=%d\n", node->type);   
-    if (node->type == AST_COMMAND)
+    else if (node->type == AST_COMMAND)
         status = exec_command(node, data);
     else if (node->type == AST_AND)
         status = exec_and(node, data);
@@ -64,8 +63,7 @@ int	exec_ast(t_ast *node, t_data *data)
 
 	if (!node)
 		return (0);
-	fprintf(stderr, "DEBUG exec_ast: node->type=%d\n", node->type);
-	if (node->type == AST_COMMAND)
+	else if (node->type == AST_COMMAND)
 		status = exec_command(node, data);
 	else if (node->type == AST_AND)
 		status = exec_and(node, data);

@@ -1,8 +1,0 @@
-fullcode.txt
-includes
-LIBFT2
-Makefile
-minishell
-obj
-src
-test.txt
