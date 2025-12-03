@@ -106,7 +106,7 @@ int	main(int ac, char **argv, char **envp)
 		if (tree)
 		{
 			//ast_print(tree, 0);
-			exec_ast(tree, &data);
+			data.last_status = exec_ast(tree, &data);
 			ast_free(tree);
 		} 
 		free_tokens(tokens);
@@ -2147,7 +2147,7 @@ void teardown_resources(int (*pipes)[2], pid_t *pids, int n, t_data *data)
 
 #include "nanoshell.h"
 
-static int  wait_for_child(pid_t pid)
+int  wait_for_child(pid_t pid)
 {
     int status;
     int ret;
@@ -2167,29 +2167,29 @@ static int  wait_for_child(pid_t pid)
 }
 // +128 para distinguir fallo por señal \ fallo por exit code.
 
-static void reset_sig_in_child(void)
+void reset_sig_in_child(void)
 {
     signal(SIGINT, SIG_DFL);
     signal(SIGQUIT, SIG_DFL);
 }
 
-static void exec_child(t_ast *node, t_data *data)
+void exec_child(t_ast *node, t_data *data)
 {
     char    *path;
 
     if (!node || !node->argv || !node->argv[0])
-        _exit(127);
+        exit(127);
     path = find_path((char *)node->argv[0], data->envp);
     if (!path)
     {
         exec_error("command not found", node->argv[0]);
-        _exit(127);
+        exit(127);
     }
     reset_sig_in_child();
     execve(path, node->argv, data->envp);
     perror("execve");
     free(path);    
-    _exit(127);
+    exit(127);
 }
 
 int exec_command(t_ast *node, t_data *data)
@@ -2250,28 +2250,26 @@ static int  exec_and(t_ast *node, t_data *data)
 
 int	exec_ast(t_ast *node, t_data *data)
 {
+	int	status;
+
 	if (!node)
 		return (0);
 	else if (node->type == AST_COMMAND)
-		return (exec_command(node, data));
+		status = exec_command(node, data);
 	else if (node->type == AST_AND)
-		return (exec_and(node, data));
+		status = exec_and(node, data);
 	else if (node->type == AST_OR)
-		return (exec_or(node, data));
+		status = exec_or(node, data);
 	else if (node->type == AST_PIPE)
-	{
-    	// Single-command pipe list: just execute the only child
-    	//if (node->children && !node->children->next)
-        //	return exec_ast(node->children->node, data);
-    	// Later you will replace this with exec_pipeline(...)
-    	// for real multi‑command pipes.
-    	return exec_pipeline(node, data);
-	}	
+		status = exec_pipeline(node, data);
 	else if (node->type == AST_REDIRECT)
-		return (apply_redirect_and_exec(node, data));
+		status = apply_redirect_and_exec(node, data);
 	//else if (node->type == AST_SUBSHELL)
 		//return (exec_subshell(node, data));
-	return (1);
+	else
+		status = 1;
+	data->last_status = status;
+	return (status);
 }
 
 #include "nanoshell.h"
@@ -2351,6 +2349,7 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 	int		fd;
 	pid_t	pid;
 	int		status;
+	int		ret;
 
 	if (!node || !node->left)
 		return (1);
@@ -2373,13 +2372,13 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 			if (fd < 0)
 			{
 				exec_error("open failed", node->file);
-				_exit(1);
+				exit(1);
 			}
 			if (dup2(fd, STDOUT_FILENO) < 0)
 			{
 				exec_error("dup2 failed", node->file);
 				close(fd);
-				_exit(1);
+				exit(1);
 			}
 		}
 		else if (node->redirect_type == TOKEN_REDIR_APPEND)
@@ -2389,13 +2388,13 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 			if (fd < 0)
 			{
 				exec_error("open failed", node->file);
-				_exit(1);
+				exit(1);
 			}
 			if (dup2(fd, STDOUT_FILENO) < 0)
 			{
 				exec_error("dup2 failed", node->file);
 				close(fd);
-				_exit(1);
+				exit(1);
 			}		
         }
 		else if (node->redirect_type == TOKEN_REDIR_IN)
@@ -2405,13 +2404,13 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 			if (fd < 0)
 			{
 				exec_error("open failed", node->file);
-				_exit(1);
+				exit(1);
 			}
 			if (dup2(fd, STDIN_FILENO) < 0)
 			{
 				exec_error("dup2 failed", node->file);
 				close(fd);
-				_exit(1);
+				exit(1);
 			}
 		}
 		else if (node->redirect_type == TOKEN_HEREDOC)
@@ -2422,14 +2421,14 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 			if (fd < 0)
 			{
 				exec_error("open failed", node->file);
-				_exit(1);
+				exit(1);
 			}
 			// The command will read its input from your heredoc, not from the terminal
 			if (dup2(fd, STDIN_FILENO) < 0)
 			{
 				exec_error("dup2 failed", node->file);
 				close(fd);
-				_exit(1);
+				exit(1);
 			}
 		}
 		/* only close if it was actually opened */
@@ -2437,19 +2436,16 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 			close(fd);
 		// now run the node->left command/subtree
 		status = exec_ast(node->left, data);
-		_exit(status);
+		exit(status);
 	}
 	else
 	{
 		// PARENT: wait for child and return its status
-		if (waitpid(pid, &status, 0) < 0)
-			return (1);
+		ret = wait_for_child(pid);
 		if (node->redirect_type == TOKEN_HEREDOC && node->file)
 			unlink(node->file); // delete tmp file
-		if (WIFEXITED(status))
-			return (WEXITSTATUS(status));
-		// map signals, or just:
-    	return (1);
+		data->last_status = ret;
+    	return (data->last_status);
 	}
 }	
 /* ************************************************************************** */
@@ -2682,7 +2678,32 @@ int run_single(t_ast *cmd, t_data *data)
     (void)data;
     return (exec_command(cmd, data));
 }
-/* ************************************************************************** */
+#include "nanoshell.h"
+
+int exec_subshell(t_ast *node, t_data *data)
+{
+    pid_t   pid;
+    int     status;
+
+    if (!node || node->type != AST_SUBSHELL || !node->left)
+        return (1);
+    
+    pid = fork();
+    if (pid < 0)
+    {
+        perror("fork");
+        return (1);
+    }
+    if (pid == 0)
+    {
+        // CHILD: run subshell body in a separate process
+        reset_sig_in_child();
+        status = exec_ast(node->left, data);
+        exit(status);
+    }
+    // PARENT: wait and return subshell status
+    return (wait_for_child(pid));
+}/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   find_path.c                                        :+:      :+:    :+:   */
@@ -2969,7 +2990,7 @@ static ssize_t  safe_read(int fd, void *buf, size_t count)
 }
 
 
-int forward_fd(int fd)
+int forward_fd(int fd)   ESTO ERA UTIL PARA RUN_SINGLE, NOW IS TRASH
 {
     char    buf[4096];
     ssize_t r;
