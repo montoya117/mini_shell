@@ -68,6 +68,7 @@ void ast_parser_error(const char *message, t_token *token)
 {
     const char  *prefix;
     const char  *errstr;
+    const char  *suffix;
 
     prefix = "Parse error: ";
     errstr = NULL;
@@ -84,7 +85,10 @@ void ast_parser_error(const char *message, t_token *token)
         write (2, "'\n", 2);
     }
     else
-        write (2, " at the end of input\n", 18);
+    {
+        suffix = " at the end of input\n";
+        write(2, suffix, ft_strlen_const(suffix));
+    }
 	// If errno is set, print details
     if (errno != 0)
     {
