@@ -77,13 +77,8 @@ int	apply_redirect_and_exec_child(t_ast *node, t_data *data)
 	/* only close if it was actually opened */
 	if (fd >= 0)
 		close(fd);
-	int st = exec_ast_in_child(node->left, data);
-
-	fprintf(stderr, "DEBUG exec_ast_in_child returned %d\n", st);
-
-	return st;
 	// now run the node->left command/subtree
-	//return (exec_ast_in_child(node->left, data));
+	return (exec_ast_in_child(node->left, data));
 }	
 
 int	apply_redirect_and_exec(t_ast *node, t_data *data)

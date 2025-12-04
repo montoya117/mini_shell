@@ -12,10 +12,11 @@
 
 #include "nanoshell.h"
 
+/*
 static void	print_banner(void)
 {
 	printf("\n");
-	printf(C);
+	printf(G);
 	printf("         ██╗       ██╗       ███╗   ███╗    \n");
 	printf("         ██║       ██║       ████╗ ████║    \n");
 	printf("         ██║    ████████╗    ██╔████╔██║    \n");
@@ -30,6 +31,20 @@ static void	print_banner(void)
 	printf("    ███████║██║  ██║███████╗███████╗███████╗\n");
 	printf("    ╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n");
 	printf("                                             \n");
+	printf(RST"\n");
+}
+*/
+
+static void	print_banner(void)
+{
+	printf("\n");
+	printf(C);
+	printf("███╗   ███╗██╗███╗   ██╗██╗        ███████╗██╗  ██╗███████╗██╗     ██╗     \n");
+	printf("████╗ ████║██║████╗  ██║██║        ██╔════╝██║  ██║██╔════╝██║     ██║     \n");
+	printf("██╔████╔██║██║██╔██╗ ██║██║        ███████╗███████║█████╗  ██║     ██║     \n");
+	printf("██║╚██╔╝██║██║██║╚██╗██║██║        ╚════██║██╔══██║██╔══╝  ██║     ██║     \n");
+	printf("██║ ╚═╝ ██║██║██║ ╚████║██║███████╗███████║██║  ██║███████╗███████╗███████╗\n");
+	printf("╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n");
 	printf(RST"\n");
 }
 
@@ -100,7 +115,9 @@ int	main(int ac, char **argv, char **envp)
 			continue ;
 		}
 		//tokens_print_simple(tokens);
-		
+
+		// Guardar el head original para poder liberarlo tras el parser
+		t_token *tokens_head = tokens;
 		// parser & AST
 		t_ast *tree = parser(&tokens);
 		if (tree)
@@ -109,7 +126,7 @@ int	main(int ac, char **argv, char **envp)
 			data.last_status = exec_ast(tree, &data);
 			ast_free(tree);
 		} 
-		free_tokens(tokens);
+		free_tokens(tokens_head);
         free(line); 
 	}
 	write_history(".nanoshell_history"); // Save session history

@@ -31,13 +31,24 @@ void ast_list_free(t_ast_list *list)
 // free ast_nodes & children
 void ast_free(t_ast *node)
 {
+    int i;
+
 	if (!node)
 		return ;
 	ast_free(node->left);
 	ast_free(node->right);
 	ast_list_free(node->children);
-	free(node->argv);
-	free(node->file);
+	if (node->argv)
+    {
+        i = 0;
+        while(node->argv[i])
+        {
+            free(node->argv[i]);
+            i++;
+        }
+        free(node->argv);
+    }
+    free(node->file);
 	free(node);
 }
 

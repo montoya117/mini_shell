@@ -148,6 +148,7 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
         if (!token || token->type != TOKEN_WORD)
         {
 			set_parser_error(ctx, "missing file name after redirection", token);
+            ast_free(cmd);
             return (NULL);
         }
         // heredoc
@@ -160,6 +161,7 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
             {
                 // error
                 set_parser_error(ctx, "heredoc creation failed", token);
+                ast_free(cmd);
                 return (NULL);
             }
         }
@@ -170,6 +172,7 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
             if (!redirect_file)
             {
                 set_parser_error(ctx, "memory allocation failed", token);
+                ast_free(cmd);
                 return (NULL);
             }
         }
