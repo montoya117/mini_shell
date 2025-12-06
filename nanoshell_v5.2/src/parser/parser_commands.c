@@ -1,108 +1,22 @@
 
 #include "nanoshell.h"
-/*
-// Utility: error handling wrapper
-void set_parser_error(t_parser_context *ctx, const char *message, t_token *token)
-{
-    ctx->error_status = 1;
-    ctx->message = message;
-    ctx->error_token = token;
-    ast_parser_error(message, token);
-} ✅
 
-// Example in parser_commands:
-t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
-{
-    ...
-    // Check for illegal token at start (e.g., redirection with no command)
-    if (token && (token->type == TOKEN_REDIR_IN
-        || token->type == TOKEN_REDIR_OUT
-        || token->type == TOKEN_REDIR_APPEND
-        || token->type == TOKEN_HEREDOC))
-    {
-        set_parser_error(ctx, "redirection without command", token);
-        return NULL;
-    }✅
-    ...
-    // Later, on missing filename after redirection:
-    if (!token || token->type != TOKEN_WORD)
-    {
-        set_parser_error(ctx, "missing file name after redirection", token);
-        return NULL;
-    }✅
-    ...
-    // At end: check for garbage tokens after valid command
-    if (token && token->type != TOKEN_PIPE && / no more expected tokens /)
-    {
-        set_parser_error(ctx, "unexpected token after command", token);
-        return NULL;
-    }
-    ...
-}
-
-// Example in parser_pipe:
-t_ast *parser_pipe(t_token **ptokens, t_parser_context *ctx)
-{
-    ...
-    while (token && token->type == TOKEN_PIPE)
-    {
-        token = token->next;
-        if (!token || (token->type != TOKEN_WORD && token->type != TOKEN_LPAREN))
-        {
-            set_parser_error(ctx, "expected command after pipe", token);
-            return NULL;
-        }
-        ...
-    }
-    ...
-} ✅
-
-// Example in parser_logical:
-t_ast *parser_logical(t_token **ptokens, t_parser_context *ctx)
-{
-    ...
-    while (token && (token->type == TOKEN_AND || token->type == TOKEN_OR))
-    {
-        token = token->next;
-        if (!token)
-        {
-            set_parser_error(ctx, "operator at end of input", token);
-            return NULL;
-        }
-        ...
-    }
-    ...
-} ✅
-
-// At very top-level, handle end-of-input garbage
-t_ast *parser(t_token **ptokens, t_parser_context *ctx)
-{
-    t_ast *tree = parser_logical(ptokens, ctx);
-    if (ctx->error_status)
-        return NULL;
-    if (*ptokens != NULL)
-    {
-        set_parser_error(ctx, "unexpected extra input", *ptokens);
-        return NULL;
-    }
-    return tree;
-}
-
-*/
 // Check ctx->error_status after each parsing step, and early-return if an error is detected.
 
 t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 {
     int             argc;
+    int             assign_count;
     int             i;
     char            **argv;
+    char            **assigments;
     t_token         *token;
     t_token_type    redirect_type;
     char            *redirect_file;
     t_ast           *cmd;
 	
 	token = *ptokens;
-	// check for redirections without prvious command
+	// 1- check for redirections without prvious command
 	if (token && (token->type == TOKEN_REDIR_IN
         || token->type == TOKEN_REDIR_OUT
         || token->type == TOKEN_REDIR_APPEND
@@ -111,21 +25,44 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 		set_parser_error(ctx,  "redirection without command", token);
 		return (NULL);
 	}
-	// count words and expansions
+	// 2- FIRST PASS: count assignments + normal args
+    assign_count = 0;
     argc = 0;
+    // count leading assignment words
+    while (token && (token->type == TOKEN_WORD || token->type == TOKEN_EXPANSION)
+        && is_assignment_word(token->text))
+    {
+        assign_count++;
+        token = token->next;
+    }
+    // count remaining words as normal argv
     while (token && (token->type == TOKEN_WORD || token->type == TOKEN_EXPANSION))
     {
         argc++;
         token = token->next;
     }
-	if (argc == 0) 
+	if (assign_count == 0 && argc == 0) 
 	{
 		set_parser_error(ctx, "empty command before operator", token);
 		return NULL;
 	}
-    // collect and malloc arguments
-    argv = safe_malloc((argc + 1) * sizeof(char*));
+    // 3- allocate arrays
+    assigments = NULL;
+    if (assign_count > 0)
+        assigments = safe_malloc((assign_count + 1) * sizeof(char *));
+    argv = safe_malloc((argc + 1) * sizeof(char *));
+    // 4- SECOND PASS: fill arrays
     token = *ptokens;
+    // if assign_count = 0  will skip to argv
+    i = 0;
+    while (i < assign_count)
+    {
+        assigments[i] = ft_strdup(token->text);
+        i++;
+        token = token->next;
+    }
+    if (assigments)
+        assigments[assign_count] = NULL;
     i = 0;
     while (token && (token->type == TOKEN_WORD || token->type == TOKEN_EXPANSION))
     {
@@ -134,9 +71,11 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
         token = token->next;
     }
     argv[i] = NULL;
-    cmd = ast_new_command(argv);
+    // 5- build command node with assignments
+    cmd = ast_new_command(argv, assigments);
     
-    //  if more tokens, look for rediretions 
+    // 6- if more tokens
+    // parse and wrap redirections
     while (token && (token->type == TOKEN_REDIR_IN
         || token->type == TOKEN_REDIR_OUT 
         || token->type == TOKEN_REDIR_APPEND

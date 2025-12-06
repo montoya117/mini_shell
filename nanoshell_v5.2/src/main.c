@@ -39,12 +39,12 @@ static void	print_banner(void)
 {
 	printf("\n");
 	printf(C);
-	printf("███╗   ███╗██╗███╗   ██╗██╗        ███████╗██╗  ██╗███████╗██╗     ██╗     \n");
-	printf("████╗ ████║██║████╗  ██║██║        ██╔════╝██║  ██║██╔════╝██║     ██║     \n");
-	printf("██╔████╔██║██║██╔██╗ ██║██║        ███████╗███████║█████╗  ██║     ██║     \n");
-	printf("██║╚██╔╝██║██║██║╚██╗██║██║        ╚════██║██╔══██║██╔══╝  ██║     ██║     \n");
-	printf("██║ ╚═╝ ██║██║██║ ╚████║██║███████╗███████║██║  ██║███████╗███████╗███████╗\n");
-	printf("╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n");
+	printf(" ███╗   ███╗██╗███╗   ██╗██╗        ███████╗██╗  ██╗███████╗██╗     ██╗     \n");
+	printf(" ████╗ ████║██║████╗  ██║██║        ██╔════╝██║  ██║██╔════╝██║     ██║     \n");
+	printf(" ██╔████╔██║██║██╔██╗ ██║██║        ███████╗███████║█████╗  ██║     ██║     \n");
+	printf(" ██║╚██╔╝██║██║██║╚██╗██║██║        ╚════██║██╔══██║██╔══╝  ██║     ██║     \n");
+	printf(" ██║ ╚═╝ ██║██║██║ ╚████║██║███████╗███████║██║  ██║███████╗███████╗███████╗\n");
+	printf(" ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n");
 	printf(RST"\n");
 }
 
@@ -61,7 +61,7 @@ int	main(int ac, char **argv, char **envp)
 	data.running = 0;
 	data.cmd = NULL;
 	data.exit = "exit";
-	data.envp = envp;
+	data.envp = dup_env(envp);
 	data.pipes = NULL;
 	data.pipes_count = 0;
 	// 2. Setup signals for Ctrl-C, Ctrl-
@@ -108,7 +108,7 @@ int	main(int ac, char **argv, char **envp)
 			break ;
 		}
 		// tokeniser test
-		t_token	*tokens = tokenizer(line, data.last_status);
+		t_token	*tokens = tokenizer(line, data.last_status, &data);
 		if (!tokens)
 		{
 			free(line);
@@ -130,5 +130,6 @@ int	main(int ac, char **argv, char **envp)
         free(line); 
 	}
 	write_history(".nanoshell_history"); // Save session history
+	free(data.envp);
 	return (0);
 }

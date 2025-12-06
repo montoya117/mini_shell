@@ -26,11 +26,11 @@ static int  append_operator(const char *line, size_t *i, size_t len, t_token **h
     return (1);
 }
 
-static int  append_word(const char *line, size_t *i, size_t len, t_token **head, int last_status)
+static int  append_word(const char *line, size_t *i, size_t len, t_token **head, int last_status, t_data *data)
 {
     t_token *word;
 
-    word = parse_word(line, i, len, last_status);
+    word = parse_word(line, i, len, last_status, data);
     if (!word)
     {
         free_tokens(*head);
@@ -40,7 +40,7 @@ static int  append_word(const char *line, size_t *i, size_t len, t_token **head,
     return (1);
 }
 
-t_token *tokenizer(const char *line, int last_status)
+t_token *tokenizer(const char *line, int last_status, t_data *data)
 {
     t_token *head;
     size_t  i;
@@ -63,7 +63,7 @@ t_token *tokenizer(const char *line, int last_status)
                 return (NULL);
             continue;
         }
-        if (!append_word(line, &i, len, &head, last_status))
+        if (!append_word(line, &i, len, &head, last_status, data))
             return (NULL);
     }
     return (head);

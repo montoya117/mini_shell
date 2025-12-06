@@ -39,7 +39,7 @@ static t_token	*finalize_token_from_ctx(size_t start, t_word_ctx *ctx)
 	return (token_new(TOKEN_WORD, text, qt, (int)start));
 }
 
-static t_token *build_word_token(const char *line, size_t *i, size_t len, size_t start, int last_status)
+static t_token *build_word_token(const char *line, size_t *i, size_t len, size_t start, int last_status, t_data *data)
 {
     t_word_ctx ctx;
     int rc;
@@ -50,7 +50,7 @@ static t_token *build_word_token(const char *line, size_t *i, size_t len, size_t
     ctx.seen_unquoted = 0;
     buf_init(&ctx.buf);
 
-    rc = process_chars_ctx(&ctx, line, i, len, last_status);
+    rc = process_chars_ctx(&ctx, line, i, len, last_status, data);
     if (rc != 0)
     {
         if (rc == -1)
@@ -64,12 +64,12 @@ static t_token *build_word_token(const char *line, size_t *i, size_t len, size_t
     return (tok);
 }
 
-t_token	*parse_word(const char *line, size_t *i, size_t len, int last_status)
+t_token	*parse_word(const char *line, size_t *i, size_t len, int last_status, t_data *data)
 {
 	size_t	start;
 
 	if (!line || !i)
 		return (NULL);
 	start = *i;
-	return (build_word_token(line, i , len, start, last_status));
+	return (build_word_token(line, i , len, start, last_status, data));
 }

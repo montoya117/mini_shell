@@ -40,7 +40,7 @@ typedef struct s_ast {
 #include "nanoshell.h"
 
 // Command node constructor
-t_ast *ast_new_command(char **tokens)
+t_ast *ast_new_command(char **tokens, char **assigments)
 {
 	t_ast	*node;
 
@@ -49,6 +49,7 @@ t_ast *ast_new_command(char **tokens)
 	node->left = NULL;
 	node->right = NULL;
 	node->argv = tokens;
+    node->assigments = assigments;
 	node->file = NULL;
 	node->redirect_type = 0;
 	node->children = NULL;

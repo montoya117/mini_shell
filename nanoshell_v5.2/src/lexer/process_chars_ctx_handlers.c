@@ -55,19 +55,19 @@ int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int 
         dbg_buf_print(ctx);
         return rc;
     }
-}
+
 */
 
-int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int last_status)
+int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int last_status, t_data *data)
 {
     char c = line[*i];
 
     if (c == '\'')
         return (handle_single_quote(ctx, line, i, len));
     if (c == '"')
-        return (handle_double_quote(ctx, line, i, len, last_status));
+        return (handle_double_quote(ctx, line, i, len, last_status, data));
     if (c == '$')
-        return (handle_dollar(ctx, line, i, len, last_status));
+        return (handle_dollar(ctx, line, i, len, last_status, data));
     if (c == '\\')
         return (handle_backslash_outside(ctx, line, i, len));
     return (handle_regular_char(ctx, line, i));

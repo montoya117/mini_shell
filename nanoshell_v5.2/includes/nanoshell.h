@@ -137,7 +137,8 @@ typedef struct s_ast
 	AST_TYPE		type;
 	struct s_ast	*left; // for  && ||  and redirections
 	struct s_ast	*right; // for && || and redirections
-	char			**argv; // for commands
+	char			**argv; // for command + normal args
+	char			**assigments;  // NULL‑terminated array of "NAME=VALUE"
 	char			*file; // for redirections
 	int				redirect_type; // for rediretions
 	t_ast_list		*children; // for pipe chain
@@ -155,7 +156,7 @@ typedef struct s_parser_context
 
                                 // LEXER
 //____________ TOKENIZER.CT
-t_token	*tokenizer(const char *line, int last_status);
+t_token	*tokenizer(const char *line, int last_status, t_data *data);
 
 //____________	TOKENS_UTILS.C
 
@@ -173,11 +174,11 @@ void	tokens_print_simple_array(const t_token **arr, size_t count);
 t_token *parse_operator(const char *line, size_t *i, size_t len);
 
 //________		TOKEN_WORDS.C
-t_token *parse_word(const char *line, size_t *i, size_t len, int last_status);
+t_token *parse_word(const char *line, size_t *i, size_t len, int last_status, t_data *data);
 
 //________		TOKEN_QUOTES.C
 int		parse_single_quote(t_buf *buf, const char *line, size_t *i, size_t len);
-int		parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len, int last_status);
+int		parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len, int last_status, t_data *data);
 
 //_________		BUFFER_UTILS.C
 int buf_append_str(t_buf *b, const char *s); // habra que moverla 
@@ -189,14 +190,14 @@ char    *buf_release(t_buf *buf);//habra q moverla de este archivo, ya le buscar
 
 
 //________        EXPAND.C
-int expand_dollar(t_buf *buf, const char *line, size_t *i, size_t len, int last_status);
+int expand_dollar(t_buf *buf, const char *line, size_t *i, size_t len, int last_status, t_data *data);
 int expand_special_pid(t_buf *buf, size_t *i);
 int expand_special_status(t_buf *buf, size_t *i, int last_status);
 
 //__________    EXPAND_HANDLERS.C
 
-int handle_braced(t_buf *buf, const char *line, size_t *i, size_t len);
-int handle_simple(t_buf *buf, const char *line, size_t *i, size_t len);
+int handle_braced(t_buf *buf, const char *line, size_t *i, size_t len, t_data *data);
+int handle_simple(t_buf *buf, const char *line, size_t *i, size_t len, t_data *data);
 
 //__________  HANDLE_BRACE_UTILS.C
 size_t parse_identifier_len(const char *line, size_t i, size_t len);
@@ -204,17 +205,17 @@ char *ft_strndup(const char *s, size_t n);
 
 //_______   PROCES_CHARS_CTX.C
 int process_chars_ctx(t_word_ctx *ctx, const char *line,
-                             size_t *i, size_t len, int last_status);
+                             size_t *i, size_t len, int last_status, t_data *data);
 int handle_single_quote(t_word_ctx *ctx, const char *line, size_t *i, size_t len);
 int handle_double_quote(t_word_ctx *ctx, const char *line,
-                              size_t *i, size_t len, int last_status);
+                              size_t *i, size_t len, int last_status, t_data *data);
 int handle_dollar(t_word_ctx *ctx, const char *line,
-                              size_t *i, size_t len, int last_status);
+                              size_t *i, size_t len, int last_status, t_data *data);
 int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i);
 
 //______    PROCECES_CHARS_CTX_HANDLERS.C
 int handle_backslash_outside(t_word_ctx *ctx, const char *line, size_t *i, size_t len);
-int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int last_status);
+int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int last_status, t_data *data);
 
 
 //_________		SIGNALS.C
@@ -235,7 +236,7 @@ t_ast   *parser_command_or_subshell(t_token **ptokens, t_parser_context *ctx);
 
 //__________    AST_TREE
 //__________    AST_INIT.C
-t_ast	*ast_new_command(char **tokens);
+t_ast	*ast_new_command(char **tokens, char **assignments);
 t_ast	*ast_new_pipe(t_ast_list *children);
 t_ast	*ast_new_redirect(t_ast *cmd, char *file, int redirect_type);
 t_ast	*ast_new_and(t_ast *left, t_ast *right);
@@ -246,6 +247,7 @@ t_ast	*ast_new_subshell(t_ast *child);
 t_ast_list *ast_list_new(t_ast *node);
 t_ast_list *ast_list_append(t_ast_list *head, t_ast *node);
 int			ast_count_args(char **argv);
+int		is_assignment_word(const char *s);
 
 //___________   AST_PRINTING.C
 const char *ast_to_string(const AST_TYPE type);
@@ -267,7 +269,6 @@ int		is_space(char c);
 int		is_operator(char c);
 void    skip_spaces(const char *line, size_t *i, size_t len);
 void	*safe_malloc(size_t size);
-
 
 //___________________________________ EXECUTOR
 
@@ -331,5 +332,16 @@ void teardown_resources(int (*pipes)[2], pid_t *pids, int n, t_data *data);
 				  
 int status_to_code(int s);
 pid_t wait_one(pid_t pid, int *st);
+
+//_____ASSIGNMENTS.C
+void    	apply_assignment(const char *assignment, t_data *data);
+int			is_assignment_word(const char *s);
+char    	**dup_env(char **envp);
+int			find_name(char **envp, const char *name);
+char		*join_name_value(const char *name, const char *value);
+int			set_env_var(t_data *data, const char *name, const char *value);
+const char	*get_var_from_envp(char **envp, const char *name);
+void		free_env(char **envp);
+
 #endif
 

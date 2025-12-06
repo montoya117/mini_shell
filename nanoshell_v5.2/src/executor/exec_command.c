@@ -64,9 +64,20 @@ int exec_command(t_ast *node, t_data *data)
 {
     pid_t   pid;
     int     ret;
+    int     i;
 
     if (!node || !data)
         return (127);
+    if (node->argv[0] == NULL && node->assigments != NULL)
+    {
+        i = 0;
+        while (node->assigments[i])
+        {
+            apply_assignment(node->assigments[i], data); // TODO
+            i++;
+        }
+        return (0); // success so no fork()
+    }
     pid = fork();
     if (pid < 0)
     {

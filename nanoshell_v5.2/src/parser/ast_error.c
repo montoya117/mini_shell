@@ -48,6 +48,16 @@ void ast_free(t_ast *node)
         }
         free(node->argv);
     }
+    if (node->assigments)
+    {
+        i = 0;
+        while(node->assigments[i])
+        {
+            free(node->assigments[i]);
+            i++;
+        }
+        free(node->assigments);
+    }
     free(node->file);
 	free(node);
 }

@@ -12,14 +12,14 @@
 
 #include "nanoshell.h"
 
-static int append_env_by_name(t_buf *buf, const char *name)
+static int append_env_by_name(t_buf *buf, const char *name, t_data *data)
 {
 	const char *val;
 	int rc;
 
-	if (!buf || !name)
+	if (!buf || !name || !data)
 		return (0);
-	val = getenv(name);
+	val = get_var_from_envp(data->envp, name);
 	if (!val)
 		return (0);
 	rc = buf_append_str(buf, val);
@@ -54,7 +54,7 @@ static int braced_unclosed_append(t_buf *buf, const char *line, size_t start,
 	return (0);
 }
 
-int handle_braced(t_buf *buf, const char *line, size_t *i, size_t len)
+int handle_braced(t_buf *buf, const char *line, size_t *i, size_t len, t_data *data)
 {
 	size_t start;
 	size_t idlen;
@@ -73,14 +73,14 @@ int handle_braced(t_buf *buf, const char *line, size_t *i, size_t len)
 	if (!name)
 		return (-1);
 	(*i)++;
-	rc = append_env_by_name(buf, name);
+	rc = append_env_by_name(buf, name, data);
 	free(name);
 	if (rc < 0)
 		return (-1);
 	return (0);
 }
 
-int handle_simple(t_buf *buf, const char *line, size_t *i, size_t len)
+int handle_simple(t_buf *buf, const char *line, size_t *i, size_t len, t_data *data)
 {
 	size_t idlen;
 	char *name;
@@ -99,7 +99,7 @@ int handle_simple(t_buf *buf, const char *line, size_t *i, size_t len)
 	if (!name)
 		return (-1);
 	*i += idlen;
-	rc = append_env_by_name(buf, name);
+	rc = append_env_by_name(buf, name, data);
 	free(name);
 	if (rc < 0)
 		return (-1);
