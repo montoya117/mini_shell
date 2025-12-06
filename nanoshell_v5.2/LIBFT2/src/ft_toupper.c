@@ -1,0 +1,33 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_toupper.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/08 08:18:19 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/05/18 13:00:54 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "libft.h"
+
+int	ft_toupper(int c)
+{
+	if (c >= 97 && c <= 122)
+		return (c - 32);
+	return (c);
+}
+
+#include <stdio.h>
+
+int	main()
+{
+	char	letter;
+	char	result;
+
+	letter = 'a';
+	result = ft_toupper(letter);
+	printf("%c\n", result);
+	return (0);
+}
