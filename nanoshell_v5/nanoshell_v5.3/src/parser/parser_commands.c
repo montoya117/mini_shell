@@ -9,7 +9,7 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
     int             assign_count;
     int             i;
     char            **argv;
-    char            **assigments;
+    char            **assignments;
     t_token         *token;
     t_token_type    redirect_type;
     char            *redirect_file;
@@ -47,9 +47,9 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 		return NULL;
 	}
     // 3- allocate arrays
-    assigments = NULL;
+    assignments = NULL;
     if (assign_count > 0)
-        assigments = safe_malloc((assign_count + 1) * sizeof(char *));
+        assignments = safe_malloc((assign_count + 1) * sizeof(char *));
     argv = safe_malloc((argc + 1) * sizeof(char *));
     // 4- SECOND PASS: fill arrays
     token = *ptokens;
@@ -57,12 +57,12 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
     i = 0;
     while (i < assign_count)
     {
-        assigments[i] = ft_strdup(token->text);
+        assignments[i] = ft_strdup(token->text);
         i++;
         token = token->next;
     }
-    if (assigments)
-        assigments[assign_count] = NULL;
+    if (assignments)
+        assignments[assign_count] = NULL;
     i = 0;
     while (token && (token->type == TOKEN_WORD || token->type == TOKEN_EXPANSION))
     {
@@ -72,7 +72,7 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
     }
     argv[i] = NULL;
     // 5- build command node with assignments
-    cmd = ast_new_command(argv, assigments);
+    cmd = ast_new_command(argv, assignments);
     
     // 6- if more tokens
     // parse and wrap redirections

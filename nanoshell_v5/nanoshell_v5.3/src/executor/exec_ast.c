@@ -43,7 +43,10 @@ int exec_ast_in_child(t_ast *node, t_data *data)
     if (!node)
         return (0);
     else if (node->type == AST_COMMAND)
-        status = exec_command(node, data);
+    {
+        exec_child(node, data); // never returns on success
+        return (127); // fallback
+    }
     else if (node->type == AST_AND)
         status = exec_and(node, data);
     else if (node->type == AST_OR)
@@ -64,7 +67,7 @@ int	exec_ast(t_ast *node, t_data *data)
 	if (!node)
 		return (0);
 	else if (node->type == AST_COMMAND)
-		status = exec_command(node, data);
+		status = run_single(node, data);
 	else if (node->type == AST_AND)
 		status = exec_and(node, data);
 	else if (node->type == AST_OR)

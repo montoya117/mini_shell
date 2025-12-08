@@ -43,20 +43,34 @@ void reset_sig_in_child(void)
 
 void exec_child(t_ast *node, t_data *data)
 {
+    char    **env_for_cmd; // env clone for tmperary assigment 
     char    *path;
 
     if (!node || !node->argv || !node->argv[0])
         exit(127);
-    path = find_path((char *)node->argv[0], data->envp);
+    // set env
+    env_for_cmd = data->envp;
+    // if tmp assigment
+    if (node->assignments && node->assignments[0])
+    {
+        env_for_cmd = dup_env(data->envp);
+        apply_assignments_array(&env_for_cmd, node->assignments);
+    }
+    // use env_for_cmd 
+    path = find_path((char *)node->argv[0], env_for_cmd);
     if (!path)
     {
         exec_error("command not found", node->argv[0]);
+        if (env_for_cmd != data->envp)
+            free_env(env_for_cmd);
         exit(127);
     }
     reset_sig_in_child();
-    execve(path, node->argv, data->envp);
+    execve(path, node->argv, env_for_cmd);
     perror("execve");
-    free(path);    
+    free(path);
+    if (env_for_cmd != data->envp)
+        free_env(env_for_cmd);
     exit(127);
 }
 
@@ -64,20 +78,9 @@ int exec_command(t_ast *node, t_data *data)
 {
     pid_t   pid;
     int     ret;
-    int     i;
 
     if (!node || !data)
         return (127);
-    if (node->argv[0] == NULL && node->assigments != NULL)
-    {
-        i = 0;
-        while (node->assigments[i])
-        {
-            apply_assignment(node->assigments[i], data); // TODO
-            i++;
-        }
-        return (0); // success so no fork()
-    }
     pid = fork();
     if (pid < 0)
     {

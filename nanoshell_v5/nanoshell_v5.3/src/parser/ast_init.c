@@ -40,7 +40,7 @@ typedef struct s_ast {
 #include "nanoshell.h"
 
 // Command node constructor
-t_ast *ast_new_command(char **tokens, char **assigments)
+t_ast *ast_new_command(char **tokens, char **assignments)
 {
 	t_ast	*node;
 
@@ -49,7 +49,7 @@ t_ast *ast_new_command(char **tokens, char **assigments)
 	node->left = NULL;
 	node->right = NULL;
 	node->argv = tokens;
-    node->assigments = assigments;
+    node->assignments = assignments;
 	node->file = NULL;
 	node->redirect_type = 0;
 	node->children = NULL;
@@ -66,6 +66,7 @@ t_ast *ast_new_pipe(t_ast_list *children)
 	node->left = NULL;
     node->right = NULL;
     node->argv = NULL;
+    node->assignments = NULL;
     node->file = NULL;
     node->redirect_type = 0;
     node->children = children;
@@ -82,6 +83,7 @@ t_ast *ast_new_redirect(t_ast *cmd, char *file, int redirect_type)
 	node->left = cmd;
 	node->right = NULL;
 	node->argv = NULL;
+    node->assignments = NULL;
 	node->file = file;
 	node->redirect_type = redirect_type;
 	node->children = NULL;
@@ -97,6 +99,7 @@ t_ast *ast_new_and(t_ast *left, t_ast *right)
     node->left = left;
     node->right = right;
     node->argv = NULL;
+    node->assignments = NULL;
     node->file = NULL;
     node->redirect_type = 0;
     node->children = NULL;
@@ -112,6 +115,7 @@ t_ast *ast_new_or(t_ast *left, t_ast *right)
     node->left = left;
     node->right = right;
     node->argv = NULL;
+    node->assignments = NULL;
     node->file = NULL;
     node->redirect_type = 0;
     node->children = NULL;
@@ -128,6 +132,7 @@ t_ast *ast_new_subshell(t_ast *child)
     node->left = child;
     node->right = NULL;
     node->argv = NULL;
+    node->assignments = NULL;
     node->file = NULL;
     node->redirect_type = 0;
     node->children = NULL;

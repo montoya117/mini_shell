@@ -138,7 +138,7 @@ typedef struct s_ast
 	struct s_ast	*left; // for  && ||  and redirections
 	struct s_ast	*right; // for && || and redirections
 	char			**argv; // for command + normal args
-	char			**assigments;  // NULL‑terminated array of "NAME=VALUE"
+	char			**assignments;  // NULL‑terminated array of "NAME=VALUE"
 	char			*file; // for redirections
 	int				redirect_type; // for rediretions
 	t_ast_list		*children; // for pipe chain
@@ -181,7 +181,7 @@ int		parse_single_quote(t_buf *buf, const char *line, size_t *i, size_t len);
 int		parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len, int last_status, t_data *data);
 
 //_________		BUFFER_UTILS.C
-int buf_append_str(t_buf *b, const char *s); // habra que moverla 
+int		buf_append_str(t_buf *b, const char *s); // habra que moverla 
 void    buf_init(t_buf *b);
 void    buf_free(t_buf *b);
 int		buf_ensure_capacity(t_buf *b, size_t min_needed);
@@ -334,12 +334,15 @@ int status_to_code(int s);
 pid_t wait_one(pid_t pid, int *st);
 
 //_____ASSIGNMENTS.C
-void    	apply_assignment(const char *assignment, t_data *data);
+void		apply_assignment(char ***penv, const char *assignment);
+void		apply_assignments_array(char ***penv, char **assignments);
 int			is_assignment_word(const char *s);
-char    	**dup_env(char **envp);
 int			find_name(char **envp, const char *name);
 char		*join_name_value(const char *name, const char *value);
-int			set_env_var(t_data *data, const char *name, const char *value);
+
+//_____ENV_UTILS.C
+char    	**dup_env(char **envp);
+int			set_env_var_generic(char ***penv, const char *name, const char *value);
 const char	*get_var_from_envp(char **envp, const char *name);
 void		free_env(char **envp);
 

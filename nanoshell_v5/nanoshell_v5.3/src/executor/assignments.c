@@ -1,7 +1,7 @@
 
 #include "nanoshell.h"
 
-void    apply_assignment(const char *assignment, t_data *data)
+void    apply_assignment(char ***penv, const char *assignment)
 {
     char    *equal;
     char    *name;
@@ -18,29 +18,23 @@ void    apply_assignment(const char *assignment, t_data *data)
         free(value);
         return ;
     }
-    set_env_var(data, name, value); // TODO
+    set_env_var_generic(penv, name, value);
     free(name);
     free(value);
 }
 
-char    **dup_env(char **envp)
+void    apply_assignments_array(char ***penv, char **assignments)
 {
-    int     count;
-    char    **copy;
-    int     i;
+    int i;
 
-    count = 0;
-    while(envp[count])
-        count++;
-    copy = safe_malloc((count + 1) * sizeof(char *));
+    if (!assignments || !penv)
+        return ;
     i = 0;
-    while (i < count)
+    while (assignments[i])
     {
-        copy[i] = ft_strdup(envp[i]);
+        apply_assignment(penv, assignments[i]); 
         i++;
     }
-    copy[count] = NULL;
-    return (copy);
 }
 
 // helper to look for NAME=VALUE
@@ -94,74 +88,4 @@ char    *join_name_value(const char *name, const char *value)
     if (!res)
         return (NULL);
     return (res);
-}
-
-int set_env_var(t_data *data, const char *name, const char *value)
-{
-    int     i;
-    int     count;
-    char    *new_entry;
-    char    **new_env;
-
-    if (!data || !name || !value)
-        return (1);
-    new_entry = join_name_value(name, value);
-    if (!new_entry)
-        return (1);
-    // 1) Try to replace existing
-    i = find_name(data->envp, name);
-    if (i >= 0) //so if there was name, other wise i=0
-    {
-        free(data->envp[i]);
-        data->envp[i] = new_entry;
-        return (0);
-    }
-    // 2) Append new variable
-    count = 0;
-    while (data->envp[count])
-        count++;
-    new_env = safe_malloc((count + 2) * sizeof(char *));
-    i = 0;
-    while (i < count)
-    {
-        new_env[i] = data->envp[i]; // just copy pointers
-        i++;
-    }
-    new_env[count] = new_entry; // i set the assigment value to global envp
-    new_env[count + 1] = NULL;
-
-    // free old array (not strings)
-    free(data->envp);
-    data->envp = new_env;
-    return (0);
-}
-
-const char  *get_var_from_envp(char **envp, const char *name)
-{
-    int i;
-    int len;
-
-    i = 0;
-    len = ft_strlen(name);
-    while (envp[i])
-    {
-        if (!ft_strncmp(envp[i], name, len) && envp[i][len] == '=')
-            return (envp[i] + len + 1); // points to VALUE
-        i++;
-    }
-    return (NULL); // not found
-}
-
-void free_env(char **envp)
-{
-    int i = 0;
-
-    if (!envp)
-        return;
-    while (envp[i])
-    {
-        free(envp[i]);
-        i++;
-    }
-    free(envp);
 }

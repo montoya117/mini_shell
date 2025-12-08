@@ -138,6 +138,10 @@ int run_single(t_ast *cmd, t_data *data)
 
 int run_single(t_ast *cmd, t_data *data)
 {
-    (void)data;
+	if ((!cmd->argv || !cmd->argv[0]) && cmd->assignments)
+	{
+		apply_assignments_array(&data->envp, cmd->assignments);
+		return (0);
+	}
     return (exec_command(cmd, data));
 }

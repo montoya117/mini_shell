@@ -48,15 +48,15 @@ void ast_free(t_ast *node)
         }
         free(node->argv);
     }
-    if (node->assigments)
+    if (node->assignments)
     {
         i = 0;
-        while(node->assigments[i])
+        while(node->assignments[i])
         {
-            free(node->assigments[i]);
+            free(node->assignments[i]);
             i++;
         }
-        free(node->assigments);
+        free(node->assignments);
     }
     free(node->file);
 	free(node);

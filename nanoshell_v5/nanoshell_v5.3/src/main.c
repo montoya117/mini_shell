@@ -130,6 +130,6 @@ int	main(int ac, char **argv, char **envp)
         free(line); 
 	}
 	write_history(".nanoshell_history"); // Save session history
-	free(data.envp);
+	free_env(data.envp);
 	return (0);
 }
