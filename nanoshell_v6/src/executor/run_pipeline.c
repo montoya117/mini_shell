@@ -98,10 +98,15 @@ pid_t spawn_child(t_ast *cmd, int in_fd, int out_fd, t_data *data)
 		if (data)
 		{
 			if (cmd->type == AST_REDIRECT)
-				status = apply_redirect_and_exec_child(cmd, data);
+			{
+				apply_redirect_and_exec_child(cmd, data); // never returns
+				exit(1);
+			}
 			else
-				status = exec_ast_in_child(cmd, data);
-			exit(status);
+			{
+				status = exec_ast_in_child(cmd, data); // returns status
+				exit(status);
+			}
 		}
 		else
 		{

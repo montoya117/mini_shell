@@ -214,7 +214,9 @@ t_ast   *parser_subshell(t_token **ptokens, t_parser_context *ctx)
     if (token && token->type == TOKEN_LPAREN)
     {
         token = token->next; // Skip the '('
-        subshell = parser(&token);
+        // Parsear el interior con la misma regla que usa parser(), pero
+        // SIN hacer el check de "no queden tokens"
+        subshell = parser_logical(&token, ctx);
 		if (ctx->error_status)
             return (NULL);
         if (!token || token->type != TOKEN_RPAREN)

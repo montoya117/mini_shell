@@ -54,9 +54,11 @@ void exec_child(t_ast *node, t_data *data)
     char    **env_for_cmd; // env clone for tmperary assigment 
     char    *path;
     int     status;
+    int     exit_code;
 
+    exit_code = 127;
     if (!node || !node->argv || !node->argv[0])
-        exit(127);
+        exit(exit_code);
     // set env
     env_for_cmd = data->envp;
     // if Temporary VAR=VALUE cmd
@@ -83,15 +85,30 @@ void exec_child(t_ast *node, t_data *data)
         exec_error("command not found", node->argv[0]);
         if (env_for_cmd != data->envp)
             free_env(env_for_cmd);
-        exit(127);
+        exit(exit_code);
     }
     reset_sig_in_child();
     execve(path, node->argv, env_for_cmd);
-    perror("execve");
+    /* si llegamos aquí, execve ha fallado */
+    if (errno == EACCES)
+    {
+        exec_error("Permission denied", node->argv[0]); // o mensaje más fino
+        exit_code = 126;
+    }
+    else if (errno == ENOEXEC)
+    {
+        exec_error("Exec format error", node->argv[0]);
+        exit_code = 126;
+    }
+    else
+    {
+        perror("execve");
+        exit_code = 127;
+    }
     free(path);
     if (env_for_cmd != data->envp)
         free_env(env_for_cmd);
-    exit(127);
+    exit(exit_code);
 }
 
 int exec_command(t_ast *node, t_data *data)

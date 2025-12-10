@@ -277,8 +277,8 @@ int     exec_ast(t_ast *node, t_data *data);
 int		exec_ast_in_child(t_ast *node, t_data *data);
 
 //____________ EXEC_REDIR.C ______________
-int	apply_redirect_and_exec(t_ast *node, t_data *data);
-int	apply_redirect_and_exec_child(t_ast *node, t_data *data);
+int		apply_redirect_and_exec(t_ast *node, t_data *data);
+void	apply_redirect_and_exec_child(t_ast *node, t_data *data);
 
 //___________EXEC_COMMAND.C__________
 int 	wait_for_child(pid_t pid);
