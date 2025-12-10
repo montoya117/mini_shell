@@ -77,21 +77,6 @@ int	main(int ac, char **argv, char **envp)
 	while (data.running == 0)
 	{
 		line = readline("$> ");
-		// Handle signal flag if set
-		if (g_signal_received == SIGINT) 
-		{
-    		// Handle Ctrl-C: redisplay prompt
-    		g_signal_received = 0;
-    		free(line);
-			continue ;
-		}
-		else if (g_signal_received == SIGQUIT) 
-		{
-    		// Handle Ctrl-\: IGNORE at prompt, just reset and do nothing
-    		g_signal_received = 0;
-    		free(line);
-    		continue ;
-		}
 		if (line == NULL)
 		{
 			break ;

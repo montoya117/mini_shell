@@ -17,13 +17,21 @@
 
 int  wait_for_child(pid_t pid)
 {
-    int status;
-    int ret;
+    int     status;
+    int     ret;
+    pid_t   w;
 
-    if (waitpid(pid, &status, 0) == -1)
+    while (1)
     {
-        perror("waitpid");
-        return (127);
+        w = waitpid(pid, &status, 0);
+        if (w == -1)
+        {
+            if (errno == EINTR)
+                continue ;
+            perror("waitpid");
+            return (127);
+        }
+        break ;
     }
     if (WIFEXITED(status))
         ret = WEXITSTATUS(status);
