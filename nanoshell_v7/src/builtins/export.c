@@ -20,7 +20,7 @@ int is_valid_identifier(char *arg)
 }
 
 // hace el set de *name y *value pero no los retorna
-void split_name_value(const char *arg, char **name, char **value)
+void    split_name_value(const char *arg, char **name, char **value)
 {
     char    *equal;
 
@@ -53,6 +53,59 @@ void split_name_value(const char *arg, char **name, char **value)
     }
 }
 
+void    print_sorted_env(char **envp)
+{
+    char    **tmp;
+    char    *name;
+    char    *value;
+    int     count;
+    int     i;
+    int     j;
+
+    // count entries
+    count = 0;
+    while (envp[count])
+        count++;
+    // duplicate envp
+    tmp = dup_env(envp);
+    // sort tmp (buble sort)    
+    i = 0;
+    while (i < count)
+    {
+        j = i + 1;
+        while (j < count)
+        {
+            if (ft_strcmp(tmp[i], tmp[j]) > 0)
+            {
+                ft_swap_str(&tmp[i], &tmp[j]);
+            }
+            j++;
+        }
+        i++;
+    }
+    // Print each entry in declare -x format
+    i = 0;
+    while (i < count)
+    {
+        name = NULL;
+        value = NULL;
+        split_name_value(tmp[i], &name, &value);
+        if (!name)
+        {
+            i++;
+            continue ;
+        }
+        if (!value)
+            printf("declare -x %s\n", name);
+        else
+            printf("declare -x %s=\"%s\"\n", name, value);
+        free(name);
+        free(value);
+        i++;
+    }
+    free_env(tmp);
+}
+
 int builtin_export(char **argv, t_data *data)
 {
     int     i;
@@ -67,7 +120,7 @@ int builtin_export(char **argv, t_data *data)
     // case of export with no arguments
     if (argv[1] == NULL)
     {
-        //print_sorted_env(data->envp) TODO
+        print_sorted_env(data->envp);
         data->last_status = 0;
         return (0);
     }
@@ -101,3 +154,15 @@ int builtin_export(char **argv, t_data *data)
     data->last_status = status;
     return (status);
 }
+
+
+/*
+function print_sorted_declare_x(envp):
+    # 1) count n
+    # 2) duplicate envp -> tmp
+    # 3) bubble sort tmp with strcmp
+    # 4) for each tmp[i]:
+    #       split at '='
+    #       print "declare -x NAME=\"VALUE\""
+    # 5) free tmp strings + array
+*/

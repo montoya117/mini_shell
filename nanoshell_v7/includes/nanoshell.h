@@ -154,6 +154,19 @@ typedef struct s_parser_context
 
 // FUNCTIONS
 
+// ___________  UTILS
+
+//____________	BASIC_UTILS.C	____________
+int		is_space(char c);
+int		is_operator(char c);
+void    skip_spaces(const char *line, size_t *i, size_t len);
+void	*safe_malloc(size_t size);
+int		ft_strcmp(const char *s1, const char *s2);
+void    ft_swap_str(char **a, char **b);
+//_________		SIGNALS.C
+void	setup_signals(void);
+
+
                                 // LEXER
 //____________ TOKENIZER.CT
 t_token	*tokenizer(const char *line, int last_status, t_data *data);
@@ -218,10 +231,7 @@ int handle_backslash_outside(t_word_ctx *ctx, const char *line, size_t *i, size_
 int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int last_status, t_data *data);
 
 
-//_________		SIGNALS.C
-void	setup_signals(void);
-
-                       //__________    PARSER
+//________________________________PARSER
 
 //__________    PARSER.C
 t_ast   *parser(t_token **ptokens);
@@ -263,12 +273,6 @@ int			ft_strlen_const(const char *str); // TODO HEY HEY !!
 //___________   AST_TOKEN_UTILS.C
 t_token		*token_next_word(t_token *token);
 t_token		*token_skip_until(t_token *token, t_token_type type);
-// ___________  UTILS
-//____________	BASIC_UTILS.C	____________
-int		is_space(char c);
-int		is_operator(char c);
-void    skip_spaces(const char *line, size_t *i, size_t len);
-void	*safe_malloc(size_t size);
 
 //___________________________________ EXECUTOR
 
@@ -377,6 +381,7 @@ int builtin_exit(char **argv, t_data *data);
 //______EXPORT.C
 int 	is_valid_identifier(char *arg);
 void 	split_name_value(const char *arg, char **name, char **value);
+void    print_sorted_env(char **envp);
 int 	builtin_export(char **argv, t_data *data);
 
 #endif
