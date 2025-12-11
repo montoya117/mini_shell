@@ -369,5 +369,10 @@ char *copy_home_and_rest(const char *home, const char *path);
 char *expand_home(const char *path, t_data *data);
 char *resolve_cd_target(char **argv, t_data *data);
 
+
+//____________BUILTIN_EXIT.C
+int builtin_exit(char **argv, t_data *data);
+
+
 #endif
 

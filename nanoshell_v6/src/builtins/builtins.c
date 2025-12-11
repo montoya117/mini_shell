@@ -23,6 +23,7 @@ static struct s_builtin_entry {
 	{"echo", builtin_echo, 0},
 	{"pwd", builtin_pwd, 0},
 	{"cd", builtin_cd, 1},
+	{"exit", builtin_exit, 1},
 	/*export...*/
 	{NULL, NULL, 0}
 };
