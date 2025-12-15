@@ -384,5 +384,8 @@ void 	split_name_value(const char *arg, char **name, char **value);
 void    print_sorted_env(char **envp);
 int 	builtin_export(char **argv, t_data *data);
 
+//______UNSET.C
+int		builtin_unset(char **argv, t_data *data);
+
 #endif
 

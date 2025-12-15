@@ -25,6 +25,7 @@ static struct s_builtin_entry {
 	{"cd", builtin_cd, 1},
 	{"exit", builtin_exit, 1},
 	{"export", builtin_export, 1},
+	{"unset", builtin_unset, 1},
 	{NULL, NULL, 0}
 };
 
