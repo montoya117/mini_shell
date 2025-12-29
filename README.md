@@ -18,3 +18,5 @@ This is Javi's & Monty's repo for mini_shell project:
 ---> NANOSHELL_V7 ----> v7.0 Full builtins less unset
 
 ---> NANOSHELL_V7 ----> v7.7 Fixed multiple heredocs and redir + control + C --> echo$? = 130 ✅
+
+----> NANOSHELL_v8 -----> Some $? status fixed + test script
