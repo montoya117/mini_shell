@@ -1,0 +1,1410 @@
+[1;36m== 1) Sintaxis y operadores ==[0m
+[1;33mCASE: pipe al inicio[0m
+CMD: \|\ ls
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 1: syntax error near unexpected token `|'
+bash: -c: line 1: `| ls'
+mini    stdout:
+mini    stderr:
+Parse error: pipe at start of input at token '|'
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.rxgFpEGkkx/bash.err	2025-12-29 10:23:48.245050840 +0100
++++ /tmp/tmp.rxgFpEGkkx/mini.err	2025-12-29 10:23:48.246050840 +0100
+@@ -1,2 +1 @@
+-bash: -c: line 1: syntax error near unexpected token `|'
+-bash: -c: line 1: `| ls'
++Parse error: pipe at start of input at token '|'
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: AND al inicio[0m
+CMD: \&\&\ ls
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 1: syntax error near unexpected token `&&'
+bash: -c: line 1: `&& ls'
+mini    stdout:
+mini    stderr:
+Parse error: operator at start of input at token '&&'
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.k4zTDCMXw4/bash.err	2025-12-29 10:23:48.253050840 +0100
++++ /tmp/tmp.k4zTDCMXw4/mini.err	2025-12-29 10:23:48.254050839 +0100
+@@ -1,2 +1 @@
+-bash: -c: line 1: syntax error near unexpected token `&&'
+-bash: -c: line 1: `&& ls'
++Parse error: operator at start of input at token '&&'
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: OR al inicio[0m
+CMD: \|\|\ ls
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 1: syntax error near unexpected token `||'
+bash: -c: line 1: `|| ls'
+mini    stdout:
+mini    stderr:
+Parse error: operator at start of input at token '||'
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.j0ArEKdxRS/bash.err	2025-12-29 10:23:48.262050838 +0100
++++ /tmp/tmp.j0ArEKdxRS/mini.err	2025-12-29 10:23:48.263050838 +0100
+@@ -1,2 +1 @@
+-bash: -c: line 1: syntax error near unexpected token `||'
+-bash: -c: line 1: `|| ls'
++Parse error: operator at start of input at token '||'
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: pipe al final[0m
+CMD: ls\ \|
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 2: syntax error: unexpected end of file
+mini    stdout:
+mini    stderr:
+Parse error: expected command after pipe at the end of input
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.wrw9L452pz/bash.err	2025-12-29 10:23:48.270050838 +0100
++++ /tmp/tmp.wrw9L452pz/mini.err	2025-12-29 10:23:48.271050837 +0100
+@@ -1 +1 @@
+-bash: -c: line 2: syntax error: unexpected end of file
++Parse error: expected command after pipe at the end of input
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: AND al final[0m
+CMD: ls\ \&\&
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 2: syntax error: unexpected end of file
+mini    stdout:
+mini    stderr:
+Parse error: operator at end of input at the end of input
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.1mXIs10ax6/bash.err	2025-12-29 10:23:48.279050837 +0100
++++ /tmp/tmp.1mXIs10ax6/mini.err	2025-12-29 10:23:48.280050836 +0100
+@@ -1 +1 @@
+-bash: -c: line 2: syntax error: unexpected end of file
++Parse error: operator at end of input at the end of input
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: OR al final[0m
+CMD: ls\ \|\|
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 2: syntax error: unexpected end of file
+mini    stdout:
+mini    stderr:
+Parse error: operator at end of input at the end of input
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.yMVgKg0Xg8/bash.err	2025-12-29 10:23:48.288597618 +0100
++++ /tmp/tmp.yMVgKg0Xg8/mini.err	2025-12-29 10:23:48.288597618 +0100
+@@ -1 +1 @@
+-bash: -c: line 2: syntax error: unexpected end of file
++Parse error: operator at end of input at the end of input
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: doble pipe[0m
+CMD: ls\ \|\ \|\ wc
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 1: syntax error near unexpected token `|'
+bash: -c: line 1: `ls | | wc'
+mini    stdout:
+mini    stderr:
+Parse error: expected command after pipe at token '|'
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.v9c3cTbrbg/bash.err	2025-12-29 10:23:48.296050835 +0100
++++ /tmp/tmp.v9c3cTbrbg/mini.err	2025-12-29 10:23:48.297050835 +0100
+@@ -1,2 +1 @@
+-bash: -c: line 1: syntax error near unexpected token `|'
+-bash: -c: line 1: `ls | | wc'
++Parse error: expected command after pipe at token '|'
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: paren sin cerrar[0m
+CMD: \(\ ls
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 2: syntax error: unexpected end of file
+mini    stdout:
+mini    stderr:
+Parse error: missing the ')' at the end of input
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.Wk5wWtxQqe/bash.err	2025-12-29 10:23:48.305685076 +0100
++++ /tmp/tmp.Wk5wWtxQqe/mini.err	2025-12-29 10:23:48.305685076 +0100
+@@ -1 +1 @@
+-bash: -c: line 2: syntax error: unexpected end of file
++Parse error: missing the ')' at the end of input
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: paren suelta[0m
+CMD: \)
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 1: syntax error near unexpected token `)'
+bash: -c: line 1: `)'
+mini    stdout:
+mini    stderr:
+Parse error: empty command before operator at token ')'
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.T7P79YzsP2/bash.err	2025-12-29 10:23:48.313050833 +0100
++++ /tmp/tmp.T7P79YzsP2/mini.err	2025-12-29 10:23:48.314050833 +0100
+@@ -1,2 +1 @@
+-bash: -c: line 1: syntax error near unexpected token `)'
+-bash: -c: line 1: `)'
++Parse error: empty command before operator at token ')'
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 2) Redirecciones ==[0m
+[1;33mCASE: redir sin nombre (>)[0m
+CMD: echo\ hola\ \>
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 1: syntax error near unexpected token `newline'
+bash: -c: line 1: `echo hola >'
+mini    stdout:
+mini    stderr:
+Parse error: missing file name after redirection at the end of input
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.v2mZ5l3jlG/bash.err	2025-12-29 10:23:48.322327713 +0100
++++ /tmp/tmp.v2mZ5l3jlG/mini.err	2025-12-29 10:23:48.322327713 +0100
+@@ -1,2 +1 @@
+-bash: -c: line 1: syntax error near unexpected token `newline'
+-bash: -c: line 1: `echo hola >'
++Parse error: missing file name after redirection at the end of input
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: redir sin nombre (<)[0m
+CMD: cat\ \<
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 1: syntax error near unexpected token `newline'
+bash: -c: line 1: `cat <'
+mini    stdout:
+mini    stderr:
+Parse error: missing file name after redirection at the end of input
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.Rp6riwWfQ3/bash.err	2025-12-29 10:23:48.330656639 +0100
++++ /tmp/tmp.Rp6riwWfQ3/mini.err	2025-12-29 10:23:48.330656639 +0100
+@@ -1,2 +1 @@
+-bash: -c: line 1: syntax error near unexpected token `newline'
+-bash: -c: line 1: `cat <'
++Parse error: missing file name after redirection at the end of input
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: append sin nombre (>>)[0m
+CMD: echo\ hola\ \>\>
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 1: syntax error near unexpected token `newline'
+bash: -c: line 1: `echo hola >>'
+mini    stdout:
+mini    stderr:
+Parse error: missing file name after redirection at the end of input
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.hWRsxj1Hn2/bash.err	2025-12-29 10:23:48.338050830 +0100
++++ /tmp/tmp.hWRsxj1Hn2/mini.err	2025-12-29 10:23:48.339050830 +0100
+@@ -1,2 +1 @@
+-bash: -c: line 1: syntax error near unexpected token `newline'
+-bash: -c: line 1: `echo hola >>'
++Parse error: missing file name after redirection at the end of input
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: in inexistente[0m
+CMD: cat\ \<\ NO_SUCH_FILE
+bash    status: 1
+mini    status: 1
+bash    stdout:
+bash    stderr:
+bash: line 1: NO_SUCH_FILE: No such file or directory
+mini    stdout:
+mini    stderr:
+Executor: open failed:NO_SUCH_FILE
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.KYZKyTUWlx/bash.err	2025-12-29 10:23:48.346050829 +0100
++++ /tmp/tmp.KYZKyTUWlx/mini.err	2025-12-29 10:23:48.347050829 +0100
+@@ -1 +1 @@
+-bash: line 1: NO_SUCH_FILE: No such file or directory
++Executor: open failed:NO_SUCH_FILE
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: out sin permisos (/root)[0m
+CMD: echo\ hola\ \>\ /root/out.txt
+bash    status: 1
+mini    status: 1
+bash    stdout:
+bash    stderr:
+bash: line 1: /root/out.txt: Permission denied
+mini    stdout:
+mini    stderr:
+Executor: open failed:/root/out.txt
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.E4sT7Hnn51/bash.err	2025-12-29 10:23:48.354050828 +0100
++++ /tmp/tmp.E4sT7Hnn51/mini.err	2025-12-29 10:23:48.355050828 +0100
+@@ -1 +1 @@
+-bash: line 1: /root/out.txt: Permission denied
++Executor: open failed:/root/out.txt
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: redir sin permisos (local 000)[0m
+CMD: echo\ hola\ \>\ \'/tmp/tmp.VoAC4kWaNw/no_write\'
+bash    status: 1
+mini    status: 1
+bash    stdout:
+bash    stderr:
+bash: line 1: /tmp/tmp.VoAC4kWaNw/no_write: Permission denied
+mini    stdout:
+mini    stderr:
+Executor: open failed:/tmp/tmp.VoAC4kWaNw/no_write
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.xFghX0Er0M/bash.err	2025-12-29 10:23:48.364050828 +0100
++++ /tmp/tmp.xFghX0Er0M/mini.err	2025-12-29 10:23:48.365050827 +0100
+@@ -1 +1 @@
+-bash: line 1: /tmp/tmp.VoAC4kWaNw/no_write: Permission denied
++Executor: open failed:/tmp/tmp.VoAC4kWaNw/no_write
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: redir out simple[0m
+CMD: echo\ hola\ \>\ out.txt
+bash    status: 0
+mini    status: 0
+bash    stdout:
+bash    stderr:
+mini    stdout:
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: redir append[0m
+CMD: echo\ hola\ \>\>\ out.txt
+bash    status: 0
+mini    status: 0
+bash    stdout:
+bash    stderr:
+mini    stdout:
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: pipe + redir in[0m
+CMD: cat\ \<\ out.txt\ \|\ wc\ -l
+bash    status: 0
+mini    status: 0
+bash    stdout:
+3
+bash    stderr:
+mini    stdout:
+3
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 3) PATH y 'command not found' ==[0m
+[1;33mCASE: comando no encontrado[0m
+CMD: NO_SUCH_CMD
+bash    status: 127
+mini    status: 127
+bash    stdout:
+bash    stderr:
+bash: line 1: NO_SUCH_CMD: command not found
+mini    stdout:
+mini    stderr:
+Executor: command not found:NO_SUCH_CMD
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.jGUpPWUWVj/bash.err	2025-12-29 10:23:48.397729713 +0100
++++ /tmp/tmp.jGUpPWUWVj/mini.err	2025-12-29 10:23:48.398050824 +0100
+@@ -1 +1 @@
+-bash: line 1: NO_SUCH_CMD: command not found
++Executor: command not found:NO_SUCH_CMD
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 4) Comillas y caracteres especiales ==[0m
+[1;33mCASE: comillas dobles sin cerrar[0m
+CMD: echo\ \"hola
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 1: unexpected EOF while looking for matching `"'
+mini    stdout:
+mini    stderr:
+Parse error: unexpected extra input at token 'unclosed double quote'
+Parse error: unexpected extra input at token 'unclosed double quote'
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.wtAiRFXtaZ/bash.err	2025-12-29 10:23:48.405050823 +0100
++++ /tmp/tmp.wtAiRFXtaZ/mini.err	2025-12-29 10:23:48.406050823 +0100
+@@ -1 +1,2 @@
+-bash: -c: line 1: unexpected EOF while looking for matching `"'
++Parse error: unexpected extra input at token 'unclosed double quote'
++Parse error: unexpected extra input at token 'unclosed double quote'
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: comillas simples sin cerrar[0m
+CMD: echo\ \'hola
+bash    status: 2
+mini    status: 2
+bash    stdout:
+bash    stderr:
+bash: -c: line 1: unexpected EOF while looking for matching `''
+mini    stdout:
+mini    stderr:
+Parse error: unexpected extra input at token 'unclosed single quote'
+Parse error: unexpected extra input at token 'unclosed single quote'
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.6sC8NiSWLh/bash.err	2025-12-29 10:23:48.414381013 +0100
++++ /tmp/tmp.6sC8NiSWLh/mini.err	2025-12-29 10:23:48.414381013 +0100
+@@ -1 +1,2 @@
+-bash: -c: line 1: unexpected EOF while looking for matching `''
++Parse error: unexpected extra input at token 'unclosed single quote'
++Parse error: unexpected extra input at token 'unclosed single quote'
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: single quote literal[0m
+CMD: echo\ \'\$HOME\'
+bash    status: 0
+mini    status: 0
+bash    stdout:
+$HOME
+bash    stderr:
+mini    stdout:
+$HOME
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: double quote expand[0m
+CMD: echo\ \"/home/suja\"
+bash    status: 0
+mini    status: 0
+bash    stdout:
+/home/suja
+bash    stderr:
+mini    stdout:
+/home/suja
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: backslash literal (subject)[0m
+CMD: echo\ \\a
+bash    status: 0
+mini    status: 0
+bash    stdout:
+a
+bash    stderr:
+mini    stdout:
+a
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: semicolon referencia bash[0m
+CMD: echo\ hola\;\ echo\ adios
+bash    status: 0
+mini    status: 0
+bash    stdout:
+hola
+adios
+bash    stderr:
+mini    stdout:
+hola; echo adios
+mini    stderr:
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.RQmgCt23T7/bash.out	2025-12-29 10:23:48.445518457 +0100
++++ /tmp/tmp.RQmgCt23T7/mini.out	2025-12-29 10:23:48.445518457 +0100
+@@ -1,2 +1 @@
+-hola
+-adios
++hola; echo adios
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 5) Pipes ==[0m
+[1;33mCASE: pipe simple[0m
+CMD: echo\ hola\ \|\ wc\ -c
+bash    status: 0
+mini    status: 0
+bash    stdout:
+5
+bash    stderr:
+mini    stdout:
+5
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: pipe múltiple[0m
+CMD: echo\ hola\ \|\ tr\ a-z\ A-Z\ \|\ rev
+bash    status: 0
+mini    status: 0
+bash    stdout:
+ALOH
+bash    stderr:
+mini    stdout:
+ALOH
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: pipe con fallo al final[0m
+CMD: ls\ \|\ NO_SUCH_CMD
+bash    status: 127
+mini    status: 127
+bash    stdout:
+bash    stderr:
+bash: line 1: NO_SUCH_CMD: command not found
+mini    stdout:
+mini    stderr:
+Executor: command not found:NO_SUCH_CMD
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.fLATmobVUG/bash.err	2025-12-29 10:23:48.471050816 +0100
++++ /tmp/tmp.fLATmobVUG/mini.err	2025-12-29 10:23:48.472050816 +0100
+@@ -1 +1 @@
+-bash: line 1: NO_SUCH_CMD: command not found
++Executor: command not found:NO_SUCH_CMD
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 6) Expansiones ($, 0, 7555) ==[0m
+[1;33mCASE: HOME expansion[0m
+CMD: echo\ \$HOME
+bash    status: 0
+mini    status: 0
+bash    stdout:
+/home/suja
+bash    stderr:
+mini    stdout:
+/home/suja
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: var missing[0m
+CMD: echo\ \$NO_SUCH_VAR
+bash    status: 0
+mini    status: 0
+bash    stdout:
+
+bash    stderr:
+mini    stdout:
+
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mFEED SESSION: estado tras false[0m
+Script:
+----------------------------------------
+false
+echo $?
+----------------------------------------
+bash    status: 0
+mini    status: 0
+bash    stdout:
+1
+bash    stderr:
+mini    stdout:
+mini    stderr:
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.Ok4Vi1x3fY/bash.out	2025-12-29 10:23:48.496738860 +0100
++++ /tmp/tmp.Ok4Vi1x3fY/mini.out	2025-12-29 10:23:48.496738860 +0100
+@@ -1 +0,0 @@
+-1
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mFEED SESSION: estado tras pipeline[0m
+Script:
+----------------------------------------
+ls | wc -l
+echo $?
+----------------------------------------
+bash    status: 0
+mini    status: 0
+bash    stdout:
+11
+0
+bash    stderr:
+mini    stdout:
+mini    stderr:
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.CVl92l5Uu7/bash.out	2025-12-29 10:23:48.506180202 +0100
++++ /tmp/tmp.CVl92l5Uu7/mini.out	2025-12-29 10:23:48.506180202 +0100
+@@ -1,2 +0,0 @@
+-11
+-0
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: pid expansion 7555[0m
+CMD: echo\ \$\$
+bash    status: 0
+mini    status: 0
+bash    stdout:
+7958
+bash    stderr:
+mini    stdout:
+7959
+mini    stderr:
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.XeSQqNAf0n/bash.out	2025-12-29 10:23:48.514737161 +0100
++++ /tmp/tmp.XeSQqNAf0n/mini.out	2025-12-29 10:23:48.515050811 +0100
+@@ -1 +1 @@
+-7958
++7959
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 7) Builtins básicos ==[0m
+[1;33mCASE: echo simple[0m
+CMD: echo\ hola
+bash    status: 0
+mini    status: 0
+bash    stdout:
+hola
+bash    stderr:
+mini    stdout:
+hola
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: echo -n[0m
+CMD: echo\ -n\ hola
+bash    status: 0
+mini    status: 0
+bash    stdout:
+holabash    stderr:
+mini    stdout:
+holamini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: echo -nnn[0m
+CMD: echo\ -nnn\ hola
+bash    status: 0
+mini    status: 0
+bash    stdout:
+holabash    stderr:
+mini    stdout:
+holamini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: echo -n -n[0m
+CMD: echo\ -n\ -n\ hola
+bash    status: 0
+mini    status: 0
+bash    stdout:
+holabash    stderr:
+mini    stdout:
+holamini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: echo -n -x hola[0m
+CMD: echo\ -n\ -x\ hola
+bash    status: 0
+mini    status: 0
+bash    stdout:
+-x holabash    stderr:
+mini    stdout:
+-x holamini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: cd a /[0m
+CMD: cd\ /\;\ pwd
+bash    status: 0
+mini    status: 1
+bash    stdout:
+/
+bash    stderr:
+mini    stdout:
+mini    stderr:
+cd: No such file or directory
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.OX5Fc9p5sX/bash.out	2025-12-29 10:23:48.560050806 +0100
++++ /tmp/tmp.OX5Fc9p5sX/mini.out	2025-12-29 10:23:48.560050806 +0100
+@@ -1 +0,0 @@
+-/
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.OX5Fc9p5sX/bash.err	2025-12-29 10:23:48.559050806 +0100
++++ /tmp/tmp.OX5Fc9p5sX/mini.err	2025-12-29 10:23:48.561050806 +0100
+@@ -0,0 +1 @@
++cd: No such file or directory
+[1;31mSTATUS MISMATCH (bash=0, mini=1)[0m
+
+----------------------------------------
+
+[1;33mCASE: cd inexistente[0m
+CMD: cd\ NO_SUCH_DIR
+bash    status: 1
+mini    status: 1
+bash    stdout:
+bash    stderr:
+bash: line 1: cd: NO_SUCH_DIR: No such file or directory
+mini    stdout:
+mini    stderr:
+cd: No such file or directory
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.mCGuTQMCUg/bash.err	2025-12-29 10:23:48.569050805 +0100
++++ /tmp/tmp.mCGuTQMCUg/mini.err	2025-12-29 10:23:48.570050805 +0100
+@@ -1 +1 @@
+-bash: line 1: cd: NO_SUCH_DIR: No such file or directory
++cd: No such file or directory
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mFEED SESSION: cd sin HOME (subject)[0m
+Script:
+----------------------------------------
+unset HOME
+cd
+echo $?
+----------------------------------------
+bash    status: 0
+mini    status: 0
+bash    stdout:
+1
+bash    stderr:
+bash: line 2: cd: HOME not set
+mini    stdout:
+mini    stderr:
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.Q5d3Mfoqu8/bash.out	2025-12-29 10:23:48.577050804 +0100
++++ /tmp/tmp.Q5d3Mfoqu8/mini.out	2025-12-29 10:23:48.577050804 +0100
+@@ -1 +0,0 @@
+-1
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.Q5d3Mfoqu8/bash.err	2025-12-29 10:23:48.577050804 +0100
++++ /tmp/tmp.Q5d3Mfoqu8/mini.err	2025-12-29 10:23:48.577050804 +0100
+@@ -1 +0,0 @@
+-bash: line 2: cd: HOME not set
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: pwd[0m
+CMD: pwd
+bash    status: 0
+mini    status: 0
+bash    stdout:
+/home/suja/monty_repo_orig/nanoshell_v7/nanoshell_v7.9
+bash    stderr:
+mini    stdout:
+/home/suja/monty_repo_orig/nanoshell_v7/nanoshell_v7.9
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: export listar[0m
+CMD: export
+bash    status: 0
+mini    status: 0
+bash    stdout:
+declare -x COLORTERM="truecolor"
+declare -x DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1"
+declare -x DBUS_STARTER_ADDRESS="unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1"
+declare -x DBUS_STARTER_BUS_TYPE="session"
+declare -x DEBUGINFOD_URLS="https://debuginfod.ubuntu.com "
+declare -x DESKTOP_SESSION="ubuntu"
+declare -x DISPLAY=":0"
+declare -x GDMSESSION="ubuntu"
+declare -x GNOME_DESKTOP_SESSION_ID="this-is-deprecated"
+declare -x GNOME_SETUP_DISPLAY=":1"
+declare -x GNOME_SHELL_SESSION_MODE="ubuntu"
+declare -x GNOME_TERMINAL_SCREEN="/org/gnome/Terminal/screen/2a1f9f1d_af87_4d38_8904_9b68ccaad359"
+declare -x GNOME_TERMINAL_SERVICE=":1.112"
+declare -x GSM_SKIP_SSH_AGENT_WORKAROUND="true"
+declare -x GTK_MODULES="gail:atk-bridge"
+declare -x HOME="/home/suja"
+declare -x IM_CONFIG_PHASE="1"
+declare -x LANG="C"
+declare -x LESSCLOSE="/usr/bin/lesspipe %s %s"
+declare -x LESSOPEN="| /usr/bin/lesspipe %s"
+declare -x LOGNAME="suja"
+declare -x LS_COLORS="rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:"
+declare -x MEMORY_PRESSURE_WATCH="/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome\\x2dsession\\x2dmanager.slice/gnome-session-manager@ubuntu.service/memory.pressure"
+declare -x MEMORY_PRESSURE_WRITE="c29tZSAyMDAwMDAgMjAwMDAwMAA="
+declare -x OLDPWD
+declare -x PATH="/home/suja/TREZETATTOS/flutterSDK/flutter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin"
+declare -x PWD="/home/suja/monty_repo_orig/nanoshell_v7/nanoshell_v7.9"
+declare -x QT_ACCESSIBILITY="1"
+declare -x QT_IM_MODULE="ibus"
+declare -x SESSION_MANAGER="local/suja:@/tmp/.ICE-unix/3034,unix/suja:/tmp/.ICE-unix/3034"
+declare -x SHELL="/bin/bash"
+declare -x SHLVL="3"
+declare -x SSH_AUTH_SOCK="/run/user/1000/keyring/ssh"
+declare -x SYSTEMD_EXEC_PID="3034"
+declare -x TERM="xterm-256color"
+declare -x USER="suja"
+declare -x USERNAME="suja"
+declare -x VTE_VERSION="7600"
+declare -x WAYLAND_DISPLAY="wayland-0"
+declare -x XAUTHORITY="/run/user/1000/.mutter-Xwaylandauth.IRIGI3"
+declare -x XDG_CONFIG_DIRS="/etc/xdg/xdg-ubuntu:/etc/xdg"
+declare -x XDG_CURRENT_DESKTOP="ubuntu:GNOME"
+declare -x XDG_DATA_DIRS="/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop"
+declare -x XDG_MENU_PREFIX="gnome-"
+declare -x XDG_RUNTIME_DIR="/run/user/1000"
+declare -x XDG_SESSION_CLASS="user"
+declare -x XDG_SESSION_DESKTOP="ubuntu"
+declare -x XDG_SESSION_TYPE="wayland"
+declare -x XMODIFIERS="@im=ibus"
+declare -x _="/usr/bin/bash"
+bash    stderr:
+mini    stdout:
+declare -x COLORTERM="truecolor"
+declare -x DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1"
+declare -x DBUS_STARTER_ADDRESS="unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1"
+declare -x DBUS_STARTER_BUS_TYPE="session"
+declare -x DEBUGINFOD_URLS="https://debuginfod.ubuntu.com "
+declare -x DESKTOP_SESSION="ubuntu"
+declare -x DISPLAY=":0"
+declare -x GDMSESSION="ubuntu"
+declare -x GNOME_DESKTOP_SESSION_ID="this-is-deprecated"
+declare -x GNOME_SETUP_DISPLAY=":1"
+declare -x GNOME_SHELL_SESSION_MODE="ubuntu"
+declare -x GNOME_TERMINAL_SCREEN="/org/gnome/Terminal/screen/2a1f9f1d_af87_4d38_8904_9b68ccaad359"
+declare -x GNOME_TERMINAL_SERVICE=":1.112"
+declare -x GSM_SKIP_SSH_AGENT_WORKAROUND="true"
+declare -x GTK_MODULES="gail:atk-bridge"
+declare -x HOME="/home/suja"
+declare -x IM_CONFIG_PHASE="1"
+declare -x LANG="C"
+declare -x LESSCLOSE="/usr/bin/lesspipe %s %s"
+declare -x LESSOPEN="| /usr/bin/lesspipe %s"
+declare -x LOGNAME="suja"
+declare -x LS_COLORS="rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:"
+declare -x MEMORY_PRESSURE_WATCH="/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome\x2dsession\x2dmanager.slice/gnome-session-manager@ubuntu.service/memory.pressure"
+declare -x MEMORY_PRESSURE_WRITE="c29tZSAyMDAwMDAgMjAwMDAwMAA="
+declare -x PATH="/home/suja/TREZETATTOS/flutterSDK/flutter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin"
+declare -x PWD="/home/suja/monty_repo_orig/nanoshell_v7/nanoshell_v7.9"
+declare -x QT_ACCESSIBILITY="1"
+declare -x QT_IM_MODULE="ibus"
+declare -x SESSION_MANAGER="local/suja:@/tmp/.ICE-unix/3034,unix/suja:/tmp/.ICE-unix/3034"
+declare -x SHELL="/bin/bash"
+declare -x SHLVL="2"
+declare -x SSH_AUTH_SOCK="/run/user/1000/keyring/ssh"
+declare -x SYSTEMD_EXEC_PID="3034"
+declare -x TERM="xterm-256color"
+declare -x USER="suja"
+declare -x USERNAME="suja"
+declare -x VTE_VERSION="7600"
+declare -x WAYLAND_DISPLAY="wayland-0"
+declare -x XAUTHORITY="/run/user/1000/.mutter-Xwaylandauth.IRIGI3"
+declare -x XDG_CONFIG_DIRS="/etc/xdg/xdg-ubuntu:/etc/xdg"
+declare -x XDG_CURRENT_DESKTOP="ubuntu:GNOME"
+declare -x XDG_DATA_DIRS="/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop"
+declare -x XDG_MENU_PREFIX="gnome-"
+declare -x XDG_RUNTIME_DIR="/run/user/1000"
+declare -x XDG_SESSION_CLASS="user"
+declare -x XDG_SESSION_DESKTOP="ubuntu"
+declare -x XDG_SESSION_TYPE="wayland"
+declare -x XMODIFIERS="@im=ibus"
+declare -x _="./minishell"
+mini    stderr:
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.vEZLNyQZlw/bash.out	2025-12-29 10:23:48.594050802 +0100
++++ /tmp/tmp.vEZLNyQZlw/mini.out	2025-12-29 10:23:48.595050802 +0100
+@@ -20,16 +20,15 @@
+ declare -x LESSOPEN="| /usr/bin/lesspipe %s"
+ declare -x LOGNAME="suja"
+ declare -x LS_COLORS="rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:"
+-declare -x MEMORY_PRESSURE_WATCH="/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome\\x2dsession\\x2dmanager.slice/gnome-session-manager@ubuntu.service/memory.pressure"
++declare -x MEMORY_PRESSURE_WATCH="/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome\x2dsession\x2dmanager.slice/gnome-session-manager@ubuntu.service/memory.pressure"
+ declare -x MEMORY_PRESSURE_WRITE="c29tZSAyMDAwMDAgMjAwMDAwMAA="
+-declare -x OLDPWD
+ declare -x PATH="/home/suja/TREZETATTOS/flutterSDK/flutter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin"
+ declare -x PWD="/home/suja/monty_repo_orig/nanoshell_v7/nanoshell_v7.9"
+ declare -x QT_ACCESSIBILITY="1"
+ declare -x QT_IM_MODULE="ibus"
+ declare -x SESSION_MANAGER="local/suja:@/tmp/.ICE-unix/3034,unix/suja:/tmp/.ICE-unix/3034"
+ declare -x SHELL="/bin/bash"
+-declare -x SHLVL="3"
++declare -x SHLVL="2"
+ declare -x SSH_AUTH_SOCK="/run/user/1000/keyring/ssh"
+ declare -x SYSTEMD_EXEC_PID="3034"
+ declare -x TERM="xterm-256color"
+@@ -47,4 +46,4 @@
+ declare -x XDG_SESSION_DESKTOP="ubuntu"
+ declare -x XDG_SESSION_TYPE="wayland"
+ declare -x XMODIFIERS="@im=ibus"
+-declare -x _="/usr/bin/bash"
++declare -x _="./minishell"
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: export set y leer[0m
+CMD: export\ FOO=bar\;\ echo\ \$FOO
+bash    status: 0
+mini    status: 1
+bash    stdout:
+bar
+bash    stderr:
+mini    stdout:
+mini    stderr:
+minishell: export: `': not a vlaid identifier
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.1978I0rNj9/bash.out	2025-12-29 10:23:48.603050801 +0100
++++ /tmp/tmp.1978I0rNj9/mini.out	2025-12-29 10:23:48.603050801 +0100
+@@ -1 +0,0 @@
+-bar
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.1978I0rNj9/bash.err	2025-12-29 10:23:48.602050802 +0100
++++ /tmp/tmp.1978I0rNj9/mini.err	2025-12-29 10:23:48.603050801 +0100
+@@ -0,0 +1 @@
++minishell: export: `': not a vlaid identifier
+[1;31mSTATUS MISMATCH (bash=0, mini=1)[0m
+
+----------------------------------------
+
+[1;33mCASE: export identificador invalido[0m
+CMD: export\ 1ABC=val
+bash    status: 1
+mini    status: 1
+bash    stdout:
+bash    stderr:
+bash: line 1: export: `1ABC=val': not a valid identifier
+mini    stdout:
+mini    stderr:
+minishell: export: `1ABC=val': not a vlaid identifier
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.uGNQ9xdRvH/bash.err	2025-12-29 10:23:48.612050801 +0100
++++ /tmp/tmp.uGNQ9xdRvH/mini.err	2025-12-29 10:23:48.612050801 +0100
+@@ -1 +1 @@
+-bash: line 1: export: `1ABC=val': not a valid identifier
++minishell: export: `1ABC=val': not a vlaid identifier
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: unset variable[0m
+CMD: export\ FOO=bar\;\ unset\ FOO\;\ echo\ \$FOO
+bash    status: 0
+mini    status: 1
+bash    stdout:
+
+bash    stderr:
+mini    stdout:
+mini    stderr:
+minishell: export: `FOO;': not a vlaid identifier
+minishell: export: `': not a vlaid identifier
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.qccZYQMvN0/bash.out	2025-12-29 10:23:48.620050800 +0100
++++ /tmp/tmp.qccZYQMvN0/mini.out	2025-12-29 10:23:48.620050800 +0100
+@@ -1 +0,0 @@
+-
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.qccZYQMvN0/bash.err	2025-12-29 10:23:48.619050800 +0100
++++ /tmp/tmp.qccZYQMvN0/mini.err	2025-12-29 10:23:48.621050799 +0100
+@@ -0,0 +1,2 @@
++minishell: export: `FOO;': not a vlaid identifier
++minishell: export: `': not a vlaid identifier
+[1;31mSTATUS MISMATCH (bash=0, mini=1)[0m
+
+----------------------------------------
+
+[1;33mCASE: unset invalido[0m
+CMD: unset\ 1ABC
+bash    status: 0
+mini    status: 1
+bash    stdout:
+bash    stderr:
+mini    stdout:
+mini    stderr:
+minishell: unset: `1ABC': not a valid identidier
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.lTcVgyIWR0/bash.err	2025-12-29 10:23:48.628050799 +0100
++++ /tmp/tmp.lTcVgyIWR0/mini.err	2025-12-29 10:23:48.629050798 +0100
+@@ -0,0 +1 @@
++minishell: unset: `1ABC': not a valid identidier
+[1;31mSTATUS MISMATCH (bash=0, mini=1)[0m
+
+----------------------------------------
+
+[1;33mCASE: env sin args[0m
+CMD: env
+bash    status: 0
+mini    status: 0
+bash    stdout:
+SHELL=/bin/bash
+SESSION_MANAGER=local/suja:@/tmp/.ICE-unix/3034,unix/suja:/tmp/.ICE-unix/3034
+QT_ACCESSIBILITY=1
+COLORTERM=truecolor
+XDG_CONFIG_DIRS=/etc/xdg/xdg-ubuntu:/etc/xdg
+XDG_MENU_PREFIX=gnome-
+GNOME_DESKTOP_SESSION_ID=this-is-deprecated
+GNOME_SHELL_SESSION_MODE=ubuntu
+SSH_AUTH_SOCK=/run/user/1000/keyring/ssh
+MEMORY_PRESSURE_WRITE=c29tZSAyMDAwMDAgMjAwMDAwMAA=
+XMODIFIERS=@im=ibus
+DESKTOP_SESSION=ubuntu
+GTK_MODULES=gail:atk-bridge
+DBUS_STARTER_BUS_TYPE=session
+PWD=/home/suja/monty_repo_orig/nanoshell_v7/nanoshell_v7.9
+LOGNAME=suja
+XDG_SESSION_DESKTOP=ubuntu
+XDG_SESSION_TYPE=wayland
+SYSTEMD_EXEC_PID=3034
+_=/usr/bin/env
+XAUTHORITY=/run/user/1000/.mutter-Xwaylandauth.IRIGI3
+HOME=/home/suja
+USERNAME=suja
+IM_CONFIG_PHASE=1
+LANG=C
+LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:
+XDG_CURRENT_DESKTOP=ubuntu:GNOME
+MEMORY_PRESSURE_WATCH=/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome\x2dsession\x2dmanager.slice/gnome-session-manager@ubuntu.service/memory.pressure
+VTE_VERSION=7600
+WAYLAND_DISPLAY=wayland-0
+GNOME_TERMINAL_SCREEN=/org/gnome/Terminal/screen/2a1f9f1d_af87_4d38_8904_9b68ccaad359
+GNOME_SETUP_DISPLAY=:1
+LESSCLOSE=/usr/bin/lesspipe %s %s
+XDG_SESSION_CLASS=user
+TERM=xterm-256color
+LESSOPEN=| /usr/bin/lesspipe %s
+USER=suja
+GNOME_TERMINAL_SERVICE=:1.112
+DISPLAY=:0
+SHLVL=2
+GSM_SKIP_SSH_AGENT_WORKAROUND=true
+QT_IM_MODULE=ibus
+DBUS_STARTER_ADDRESS=unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1
+XDG_RUNTIME_DIR=/run/user/1000
+DEBUGINFOD_URLS=https://debuginfod.ubuntu.com 
+XDG_DATA_DIRS=/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+PATH=/home/suja/TREZETATTOS/flutterSDK/flutter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+GDMSESSION=ubuntu
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1
+bash    stderr:
+mini    stdout:
+SHELL=/bin/bash
+SESSION_MANAGER=local/suja:@/tmp/.ICE-unix/3034,unix/suja:/tmp/.ICE-unix/3034
+QT_ACCESSIBILITY=1
+COLORTERM=truecolor
+XDG_CONFIG_DIRS=/etc/xdg/xdg-ubuntu:/etc/xdg
+XDG_MENU_PREFIX=gnome-
+GNOME_DESKTOP_SESSION_ID=this-is-deprecated
+GNOME_SHELL_SESSION_MODE=ubuntu
+SSH_AUTH_SOCK=/run/user/1000/keyring/ssh
+MEMORY_PRESSURE_WRITE=c29tZSAyMDAwMDAgMjAwMDAwMAA=
+XMODIFIERS=@im=ibus
+DESKTOP_SESSION=ubuntu
+GTK_MODULES=gail:atk-bridge
+DBUS_STARTER_BUS_TYPE=session
+PWD=/home/suja/monty_repo_orig/nanoshell_v7/nanoshell_v7.9
+XDG_SESSION_DESKTOP=ubuntu
+LOGNAME=suja
+XDG_SESSION_TYPE=wayland
+SYSTEMD_EXEC_PID=3034
+XAUTHORITY=/run/user/1000/.mutter-Xwaylandauth.IRIGI3
+HOME=/home/suja
+USERNAME=suja
+IM_CONFIG_PHASE=1
+LANG=C
+LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:
+XDG_CURRENT_DESKTOP=ubuntu:GNOME
+MEMORY_PRESSURE_WATCH=/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome\x2dsession\x2dmanager.slice/gnome-session-manager@ubuntu.service/memory.pressure
+VTE_VERSION=7600
+WAYLAND_DISPLAY=wayland-0
+GNOME_TERMINAL_SCREEN=/org/gnome/Terminal/screen/2a1f9f1d_af87_4d38_8904_9b68ccaad359
+GNOME_SETUP_DISPLAY=:1
+LESSCLOSE=/usr/bin/lesspipe %s %s
+XDG_SESSION_CLASS=user
+TERM=xterm-256color
+LESSOPEN=| /usr/bin/lesspipe %s
+USER=suja
+GNOME_TERMINAL_SERVICE=:1.112
+DISPLAY=:0
+SHLVL=2
+GSM_SKIP_SSH_AGENT_WORKAROUND=true
+QT_IM_MODULE=ibus
+DBUS_STARTER_ADDRESS=unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1
+XDG_RUNTIME_DIR=/run/user/1000
+DEBUGINFOD_URLS=https://debuginfod.ubuntu.com 
+XDG_DATA_DIRS=/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+PATH=/home/suja/TREZETATTOS/flutterSDK/flutter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+GDMSESSION=ubuntu
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1
+_=./minishell
+mini    stderr:
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.ervxwzVjBQ/bash.out	2025-12-29 10:23:48.637050798 +0100
++++ /tmp/tmp.ervxwzVjBQ/mini.out	2025-12-29 10:23:48.639050797 +0100
+@@ -13,11 +13,10 @@
+ GTK_MODULES=gail:atk-bridge
+ DBUS_STARTER_BUS_TYPE=session
+ PWD=/home/suja/monty_repo_orig/nanoshell_v7/nanoshell_v7.9
+-LOGNAME=suja
+ XDG_SESSION_DESKTOP=ubuntu
++LOGNAME=suja
+ XDG_SESSION_TYPE=wayland
+ SYSTEMD_EXEC_PID=3034
+-_=/usr/bin/env
+ XAUTHORITY=/run/user/1000/.mutter-Xwaylandauth.IRIGI3
+ HOME=/home/suja
+ USERNAME=suja
+@@ -47,3 +46,4 @@
+ PATH=/home/suja/TREZETATTOS/flutterSDK/flutter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+ GDMSESSION=ubuntu
+ DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1
++_=./minishell
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: env con arg temporal[0m
+CMD: env\ FOO=bar
+bash    status: 0
+mini    status: 0
+bash    stdout:
+SHELL=/bin/bash
+SESSION_MANAGER=local/suja:@/tmp/.ICE-unix/3034,unix/suja:/tmp/.ICE-unix/3034
+QT_ACCESSIBILITY=1
+COLORTERM=truecolor
+XDG_CONFIG_DIRS=/etc/xdg/xdg-ubuntu:/etc/xdg
+XDG_MENU_PREFIX=gnome-
+GNOME_DESKTOP_SESSION_ID=this-is-deprecated
+GNOME_SHELL_SESSION_MODE=ubuntu
+SSH_AUTH_SOCK=/run/user/1000/keyring/ssh
+MEMORY_PRESSURE_WRITE=c29tZSAyMDAwMDAgMjAwMDAwMAA=
+XMODIFIERS=@im=ibus
+DESKTOP_SESSION=ubuntu
+GTK_MODULES=gail:atk-bridge
+DBUS_STARTER_BUS_TYPE=session
+PWD=/home/suja/monty_repo_orig/nanoshell_v7/nanoshell_v7.9
+LOGNAME=suja
+XDG_SESSION_DESKTOP=ubuntu
+XDG_SESSION_TYPE=wayland
+SYSTEMD_EXEC_PID=3034
+_=/usr/bin/env
+XAUTHORITY=/run/user/1000/.mutter-Xwaylandauth.IRIGI3
+HOME=/home/suja
+USERNAME=suja
+IM_CONFIG_PHASE=1
+LANG=C
+LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:
+XDG_CURRENT_DESKTOP=ubuntu:GNOME
+MEMORY_PRESSURE_WATCH=/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome\x2dsession\x2dmanager.slice/gnome-session-manager@ubuntu.service/memory.pressure
+VTE_VERSION=7600
+WAYLAND_DISPLAY=wayland-0
+GNOME_TERMINAL_SCREEN=/org/gnome/Terminal/screen/2a1f9f1d_af87_4d38_8904_9b68ccaad359
+GNOME_SETUP_DISPLAY=:1
+LESSCLOSE=/usr/bin/lesspipe %s %s
+XDG_SESSION_CLASS=user
+TERM=xterm-256color
+LESSOPEN=| /usr/bin/lesspipe %s
+USER=suja
+GNOME_TERMINAL_SERVICE=:1.112
+DISPLAY=:0
+SHLVL=2
+GSM_SKIP_SSH_AGENT_WORKAROUND=true
+QT_IM_MODULE=ibus
+DBUS_STARTER_ADDRESS=unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1
+XDG_RUNTIME_DIR=/run/user/1000
+DEBUGINFOD_URLS=https://debuginfod.ubuntu.com 
+XDG_DATA_DIRS=/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+PATH=/home/suja/TREZETATTOS/flutterSDK/flutter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+GDMSESSION=ubuntu
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1
+FOO=bar
+bash    stderr:
+mini    stdout:
+SHELL=/bin/bash
+SESSION_MANAGER=local/suja:@/tmp/.ICE-unix/3034,unix/suja:/tmp/.ICE-unix/3034
+QT_ACCESSIBILITY=1
+COLORTERM=truecolor
+XDG_CONFIG_DIRS=/etc/xdg/xdg-ubuntu:/etc/xdg
+XDG_MENU_PREFIX=gnome-
+GNOME_DESKTOP_SESSION_ID=this-is-deprecated
+GNOME_SHELL_SESSION_MODE=ubuntu
+SSH_AUTH_SOCK=/run/user/1000/keyring/ssh
+MEMORY_PRESSURE_WRITE=c29tZSAyMDAwMDAgMjAwMDAwMAA=
+XMODIFIERS=@im=ibus
+DESKTOP_SESSION=ubuntu
+GTK_MODULES=gail:atk-bridge
+DBUS_STARTER_BUS_TYPE=session
+PWD=/home/suja/monty_repo_orig/nanoshell_v7/nanoshell_v7.9
+XDG_SESSION_DESKTOP=ubuntu
+LOGNAME=suja
+XDG_SESSION_TYPE=wayland
+SYSTEMD_EXEC_PID=3034
+XAUTHORITY=/run/user/1000/.mutter-Xwaylandauth.IRIGI3
+HOME=/home/suja
+USERNAME=suja
+IM_CONFIG_PHASE=1
+LANG=C
+LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:
+XDG_CURRENT_DESKTOP=ubuntu:GNOME
+MEMORY_PRESSURE_WATCH=/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome\x2dsession\x2dmanager.slice/gnome-session-manager@ubuntu.service/memory.pressure
+VTE_VERSION=7600
+WAYLAND_DISPLAY=wayland-0
+GNOME_TERMINAL_SCREEN=/org/gnome/Terminal/screen/2a1f9f1d_af87_4d38_8904_9b68ccaad359
+GNOME_SETUP_DISPLAY=:1
+LESSCLOSE=/usr/bin/lesspipe %s %s
+XDG_SESSION_CLASS=user
+TERM=xterm-256color
+LESSOPEN=| /usr/bin/lesspipe %s
+USER=suja
+GNOME_TERMINAL_SERVICE=:1.112
+DISPLAY=:0
+SHLVL=2
+GSM_SKIP_SSH_AGENT_WORKAROUND=true
+QT_IM_MODULE=ibus
+DBUS_STARTER_ADDRESS=unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1
+XDG_RUNTIME_DIR=/run/user/1000
+DEBUGINFOD_URLS=https://debuginfod.ubuntu.com 
+XDG_DATA_DIRS=/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+PATH=/home/suja/TREZETATTOS/flutterSDK/flutter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+GDMSESSION=ubuntu
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1
+_=./minishell
+FOO=bar
+mini    stderr:
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.4fGaWAFF5T/bash.out	2025-12-29 10:23:48.647050797 +0100
++++ /tmp/tmp.4fGaWAFF5T/mini.out	2025-12-29 10:23:48.648050797 +0100
+@@ -13,11 +13,10 @@
+ GTK_MODULES=gail:atk-bridge
+ DBUS_STARTER_BUS_TYPE=session
+ PWD=/home/suja/monty_repo_orig/nanoshell_v7/nanoshell_v7.9
+-LOGNAME=suja
+ XDG_SESSION_DESKTOP=ubuntu
++LOGNAME=suja
+ XDG_SESSION_TYPE=wayland
+ SYSTEMD_EXEC_PID=3034
+-_=/usr/bin/env
+ XAUTHORITY=/run/user/1000/.mutter-Xwaylandauth.IRIGI3
+ HOME=/home/suja
+ USERNAME=suja
+@@ -47,4 +46,5 @@
+ PATH=/home/suja/TREZETATTOS/flutterSDK/flutter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+ GDMSESSION=ubuntu
+ DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,guid=6a4c2497370363700f8bd9a9695252f1
++_=./minishell
+ FOO=bar
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: exit simple[0m
+CMD: exit
+bash    status: 0
+mini    status: 0
+bash    stdout:
+bash    stderr:
+mini    stdout:
+mini    stderr:
+exit
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.Sm4fvSDqSG/bash.err	2025-12-29 10:23:48.655050796 +0100
++++ /tmp/tmp.Sm4fvSDqSG/mini.err	2025-12-29 10:23:48.656050796 +0100
+@@ -0,0 +1 @@
++exit
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: exit 42[0m
+CMD: exit\ 42
+bash    status: 42
+mini    status: 42
+bash    stdout:
+bash    stderr:
+mini    stdout:
+mini    stderr:
+exit
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.xwejqvJBaf/bash.err	2025-12-29 10:23:48.663050795 +0100
++++ /tmp/tmp.xwejqvJBaf/mini.err	2025-12-29 10:23:48.665050795 +0100
+@@ -0,0 +1 @@
++exit
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: exit no numeric[0m
+CMD: exit\ hola
+bash    status: 2
+mini    status: 255
+bash    stdout:
+bash    stderr:
+bash: line 1: exit: hola: numeric argument required
+mini    stdout:
+mini    stderr:
+exit
+exit: numeric argument is required
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.GD1uTQUNil/bash.err	2025-12-29 10:23:48.672050794 +0100
++++ /tmp/tmp.GD1uTQUNil/mini.err	2025-12-29 10:23:48.673050794 +0100
+@@ -1 +1,2 @@
+-bash: line 1: exit: hola: numeric argument required
++exit
++exit: numeric argument is required
+[1;31mSTATUS MISMATCH (bash=2, mini=255)[0m
+
+----------------------------------------
+
+[1;33mCASE: exit many args[0m
+CMD: exit\ 1\ 2
+bash    status: 1
+mini    status: 1
+bash    stdout:
+bash    stderr:
+bash: line 1: exit: too many arguments
+mini    stdout:
+mini    stderr:
+exit
+exit: too man y arguments
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.xIDuXMhU9Y/bash.err	2025-12-29 10:23:48.681265904 +0100
++++ /tmp/tmp.xIDuXMhU9Y/mini.err	2025-12-29 10:23:48.681265904 +0100
+@@ -1 +1,2 @@
+-bash: line 1: exit: too many arguments
++exit
++exit: too man y arguments
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 8) Bonus (AND/OR/paréntesis) si aplican ==[0m
+[1;33mCASE: false && echo ok[0m
+CMD: false\ \&\&\ echo\ ok
+bash    status: 1
+mini    status: 1
+bash    stdout:
+bash    stderr:
+mini    stdout:
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: true && echo ok[0m
+CMD: true\ \&\&\ echo\ ok
+bash    status: 0
+mini    status: 0
+bash    stdout:
+ok
+bash    stderr:
+mini    stdout:
+ok
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: false || echo fallback[0m
+CMD: false\ \|\|\ echo\ fallback
+bash    status: 0
+mini    status: 0
+bash    stdout:
+fallback
+bash    stderr:
+mini    stdout:
+fallback
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mCASE: (echo a && echo b) || echo c[0m
+CMD: \(echo\ a\ \&\&\ echo\ b\)\ \|\|\ echo\ c
+bash    status: 0
+mini    status: 0
+bash    stdout:
+a
+b
+bash    stderr:
+mini    stdout:
+a
+b
+mini    stderr:
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mFin de la batería.[0m
