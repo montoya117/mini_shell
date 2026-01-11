@@ -1,0 +1,108 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   process_chars_ctx.c                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/29 11:52:54 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/29 11:52:58 by jadelgad         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "nanoshell.h"
+
+int handle_single_quote(t_word_ctx *ctx, const char *line,
+                               size_t *i, size_t len)
+{
+	if (!ctx || !line || !i)
+		return (-1);
+	ctx->seen_single = 1;
+	ctx->was_quoted = 1; // new!!
+	(*i)++;
+	if (parse_single_quote(&ctx->buf, line, i, len) < 0)
+		return (-1);
+	return (0);
+}
+
+
+int handle_double_quote(t_word_ctx *ctx, const char *line,
+                               size_t *i, size_t len, int last_status, t_data *data)
+{
+	if (!ctx || !line || !i)
+		return (-2);
+	ctx->seen_double = 1;
+	ctx->was_quoted = 1; // new!!
+	(*i)++;
+	if (parse_double_quote(&ctx->buf, line, i, len, last_status, data) < 0)
+		return (-2);
+	return (0);
+}
+
+int handle_dollar(t_word_ctx *ctx, const char *line,
+                         size_t *i, size_t len, int last_status, t_data *data)
+{
+	if (!ctx || !line || !i)
+		return (-4);
+	if (expand_dollar(&ctx->buf, line, i, len, last_status, data) < 0)
+		return (-4);
+	return (0);
+}
+
+int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i)
+{
+	if (!ctx || !line || !i)
+		return (-3);
+	ctx->seen_unquoted = 1;
+	if (buf_append_char(&ctx->buf, line[*i]) < 0)
+		return (-3);
+	(*i)++;
+	return (0);
+}
+
+
+
+
+/*
+void dbg_buf_print(const t_word_ctx *ctx)
+{
+    const char *d = ctx->buf.data ? ctx->buf.data : "(null)";
+    fprintf(stderr, "[DBG] buf=\"%s\" seen_s=%d seen_d=%d seen_u=%d\n",
+            d, ctx->seen_single, ctx->seen_double, ctx->seen_unquoted);
+}
+
+ Loop principal con trazas
+int process_chars_ctx(t_word_ctx *ctx, const char *line,
+                             size_t *i, size_t len, int last_status)
+{
+    int rc;
+    fprintf(stderr, "[DBG] process_chars_ctx start i=%zu len=%zu\n", *i, len);
+    while (*i < len && !is_space((char)line[*i]) &&
+           !is_operator((char)line[*i]))
+    {
+        rc = dispatch_char(ctx, line, i, len, last_status);
+        if (rc != 0)
+        {
+            fprintf(stderr, "[DBG] process_chars_ctx returning rc=%d i=%zu\n", rc, *i);
+            return (rc);
+        }
+    }
+    fprintf(stderr, "[DBG] process_chars_ctx done i=%zu\n", *i);
+    return (0);
+}
+
+*/
+int process_chars_ctx(t_word_ctx *ctx, const char *line,
+                             size_t *i, size_t len, int last_status, t_data *data)
+{
+	int rc;
+
+	while (*i < len && !is_space((char)line[*i]) &&
+		   !is_operator((char)line[*i]))
+	{
+		rc = dispatch_char(ctx, line, i, len, last_status, data);
+		if (rc != 0)
+			return (rc);
+	}
+	return (0);
+}
