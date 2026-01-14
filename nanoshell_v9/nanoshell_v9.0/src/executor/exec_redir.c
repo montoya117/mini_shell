@@ -98,8 +98,7 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 		return (1);
 	}
 	else if (pid == 0)
-	{
-		
+	{	
 		apply_redirect_and_exec_child(node, data); // never returns
 		exit(1); // // unreachable but for safety
 	}

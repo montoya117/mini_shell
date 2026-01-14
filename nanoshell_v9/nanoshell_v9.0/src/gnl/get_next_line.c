@@ -1,4 +1,3 @@
-
 #include "nanoshell.h"
 
 static char	*read_and_append(int fd, char *stash)

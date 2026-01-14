@@ -271,10 +271,6 @@ t_ast_list *ast_list_append(t_ast_list *head, t_ast *node);
 int			ast_count_args(char **argv);
 int		is_assignment_word(const char *s);
 
-//___________   AST_PRINTING.C
-const char *ast_to_string(const AST_TYPE type);
-void 		ast_print(const t_ast *root, int indent);
-
 //___________   AST_ERROR.C
 void		ast_free(t_ast *node);
 void		ast_list_free(t_ast_list *list);
