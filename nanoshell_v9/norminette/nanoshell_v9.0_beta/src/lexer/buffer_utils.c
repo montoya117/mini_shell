@@ -29,23 +29,6 @@ int	buf_append_str(t_buf *b, const char *s)
 	return (0);
 }
 
-void	buf_init(t_buf *b)
-{
-	b->data = NULL;
-	b->len = 0;
-	b->cap = 0;
-}
-
-void	buf_free(t_buf *b)
-{
-	if (!b)
-		return ;
-	free(b->data);
-	b->data = NULL;
-	b->len = 0;
-	b->cap = 0;
-}
-
 static size_t	next_capacity(size_t cur, size_t min_needed)
 {
 	size_t	ncap;

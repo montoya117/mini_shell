@@ -105,6 +105,14 @@ typedef struct s_token
 	struct s_token	*next;
 }	t_token;
 
+typedef struct s_expand_ctx {
+    struct s_buf  *buf;
+    const char    *line;
+    size_t         len;
+    int            last_status;
+    struct s_data *data;
+} t_expand_ctx;
+
 // BUFFER STRUCKS
 typedef struct s_buf
 {
@@ -112,6 +120,23 @@ typedef struct s_buf
     size_t  len;
     size_t  cap;
 }   t_buf;
+
+typedef struct s_quote_ctx
+{
+	t_buf		*buf;
+	const char	*line;
+	size_t		len;
+	int			last_status;
+	t_data		*data;
+}	t_quote_ctx;
+
+typedef struct s_word_src
+{
+	const char      *line;
+	size_t           len;
+	int              last_status;
+	struct s_data   *data;
+}   t_word_src;
 
 typedef struct s_word_ctx
 {
@@ -121,6 +146,15 @@ typedef struct s_word_ctx
 	int		seen_unquoted;
 	int		was_quoted; // 0/1
 }	t_word_ctx;
+
+typedef struct s_tokenizer_ctx
+{
+	const char  *line;
+	size_t       len;
+	int          last_status;
+	t_data      *data;
+	t_token    **head;
+}   t_tokenizer_ctx;
 
 // AST STRUCTS
 typedef enum
@@ -160,6 +194,13 @@ typedef struct s_parser_context
 	t_token		*error_token; // points to the error token
 } t_parser_context;
 
+
+
+
+
+
+
+
 // FUNCTIONS
 
 // ___________  UTILS#
@@ -180,8 +221,12 @@ void	setup_signals(void);
 
 
                                 // LEXER
-//____________ TOKENIZER.CT
+//____________ TOKENIZER.C
 t_token	*tokenizer(const char *line, int last_status, t_data *data);
+
+//	_________TOKENIZER_HELPER.C
+int	skip_spaces_with_flag(const char *line, size_t *i, size_t len);
+void	set_prev_join_next(t_token **head, int had_space);
 
 //____________	TOKENS_UTILS.C
 
@@ -190,48 +235,61 @@ void    token_append(t_token **head, t_token *node);
 void    free_tokens(t_token *head);
 t_token *make_error_token_from_ctx(size_t start, const char *msg, t_word_ctx *ctx);
 
-//____________	DISPLAY_TOKENS.C
-const char	*display_text_for_token(const t_token *t);
+//____________	DISPLAY_TOKEN.C
 void	tokens_print_simple(const t_token *head);
 void	tokens_print_simple_array(const t_token **arr, size_t count);
+
+//_________  DISPLAY_TOKENS_HELPER.C
+const char	*type_to_str(t_token_type t);
+const char	*quote_to_str(t_quote_type q);
+const char	*display_text_for_type(int type);
+const char	*display_text_for_token(const t_token *t);
+void	print_escaped_char(unsigned char c);
+
+//__________DISPLAY_TOKENS_UTILS.C
+
+void	print_escaped_loop(const char *s);
+void	print_null_token(size_t i);
+t_token	*handle_greater(const char *line,
+	size_t *i, size_t len, size_t pos);
 
 //________      TOKEN_OPERATOR.C
 t_token *parse_operator(const char *line, size_t *i, size_t len);
 
 //________		TOKEN_WORDS.C
-t_token *parse_word(const char *line, size_t *i, size_t len, int last_status, t_data *data);
+t_token *parse_word_ctx(t_word_src *src, size_t *i);
 
 //________		TOKEN_QUOTES.C
 int		parse_single_quote(t_buf *buf, const char *line, size_t *i, size_t len);
-int		parse_double_quote(t_buf *buf, const char *line, size_t *i, size_t len, int last_status, t_data *data);
+int	parse_double_quote(t_quote_ctx *ctx, size_t *i);
 
 //_________		BUFFER_UTILS.C
 int		buf_append_str(t_buf *b, const char *s); // habra que moverla 
-void    buf_init(t_buf *b);
-void    buf_free(t_buf *b);
 int		buf_ensure_capacity(t_buf *b, size_t min_needed);
 int		buf_append_char(t_buf *b, char c);
 char    *buf_release(t_buf *buf);//habra q moverla de este archivo, ya le buscare sitio...
 
+//____________BUFFER_UTILS_HELPER.C
+void    buf_init(t_buf *b);
+void    buf_free(t_buf *b);
 
 //________        EXPAND.C
-int expand_dollar(t_buf *buf, const char *line, size_t *i, size_t len, int last_status, t_data *data);
+int expand_dollar(t_expand_ctx *ctx, size_t *i);
+int expand_dollar_ctx(t_quote_ctx *ctx, size_t *i);
 int expand_special_pid(t_buf *buf, size_t *i);
 int expand_special_status(t_buf *buf, size_t *i, int last_status);
 
 //__________    EXPAND_HANDLERS.C
 
-int handle_braced(t_buf *buf, const char *line, size_t *i, size_t len, t_data *data);
-int handle_simple(t_buf *buf, const char *line, size_t *i, size_t len, t_data *data);
+int handle_braced_ctx(t_expand_ctx *ctx, size_t *i);
+int handle_simple_ctx(t_expand_ctx *ctx, size_t *i);
 
 //__________  HANDLE_BRACE_UTILS.C
 size_t parse_identifier_len(const char *line, size_t i, size_t len);
 char *ft_strndup(const char *s, size_t n);
 
 //_______   PROCES_CHARS_CTX.C
-int process_chars_ctx(t_word_ctx *ctx, const char *line,
-                             size_t *i, size_t len, int last_status, t_data *data);
-int handle_single_quote(t_word_ctx *ctx, const char *line, size_t *i, size_t len);
+int process_chars_ctx(t_word_ctx *ctx, t_word_src *src, size_t *i);
 int handle_double_quote(t_word_ctx *ctx, const char *line,
                               size_t *i, size_t len, int last_status, t_data *data);
 int handle_dollar(t_word_ctx *ctx, const char *line,
@@ -240,8 +298,7 @@ int handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i);
 
 //______    PROCECES_CHARS_CTX_HANDLERS.C
 int handle_backslash_outside(t_word_ctx *ctx, const char *line, size_t *i, size_t len);
-int dispatch_char(t_word_ctx *ctx, const char *line, size_t *i, size_t len, int last_status, t_data *data);
-
+int handle_single_quote(t_word_ctx *ctx, const char *line, size_t *i, size_t len);
 
 //________________________________PARSER
 

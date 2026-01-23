@@ -12,18 +12,6 @@
 
 #include "nanoshell.h"
 
-static t_token	*handle_greater(const char *line,
-	size_t *i, size_t len, size_t pos)
-{
-	if (*i + 1 < len && line[*i + 1] == '>')
-	{
-		*i += 2;
-		return (token_new(TOKEN_REDIR_APPEND, ft_strdup(">>"), QT_NONE, pos));
-	}
-	*i += 1;
-	return (token_new(TOKEN_REDIR_OUT, ft_strdup(">"), QT_NONE, pos));
-}
-
 static t_token	*handle_less(const char *line,
 	size_t *i, size_t len, size_t pos)
 {

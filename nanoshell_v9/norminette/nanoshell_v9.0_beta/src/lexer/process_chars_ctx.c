@@ -12,42 +12,35 @@
 
 #include "nanoshell.h"
 
-int	handle_single_quote(t_word_ctx *ctx, const char *line,
-	size_t *i, size_t len)
+/* <= 4 args: usa contexto de comillas y el índice */
+static int	handle_double_quote_ctx_word(t_word_ctx *ctx,
+		t_quote_ctx *qctx, size_t *i)
 {
-	if (!ctx || !line || !i)
-		return (-1);
-	ctx->seen_single = 1;
-	ctx->was_quoted = 1;
-	(*i)++;
-	if (parse_single_quote(&ctx->buf, line, i, len) < 0)
-		return (-1);
-	return (0);
-}
+	int	rc;
 
-int	handle_double_quote(t_word_ctx *ctx, const char *line,
-	size_t *i, size_t len, int last_status, t_data *data)
-{
-	if (!ctx || !line || !i)
+	if (!ctx || !qctx || !i)
 		return (-2);
 	ctx->seen_double = 1;
 	ctx->was_quoted = 1;
 	(*i)++;
-	if (parse_double_quote(&ctx->buf, line, i, len, last_status, data) < 0)
+	rc = parse_double_quote(qctx, i);
+	if (rc < 0)
 		return (-2);
 	return (0);
 }
 
-int	handle_dollar(t_word_ctx *ctx, const char *line,
-	size_t *i, size_t len, int last_status, t_data *data)
+/* <= 4 args: usa contexto de comillas y el índice */
+static int	handle_dollar_ctx_word(t_word_ctx *ctx,
+	t_quote_ctx *qctx, size_t *i)
 {
-	if (!ctx || !line || !i)
+	if (!ctx || !qctx || !i)
 		return (-4);
-	if (expand_dollar(&ctx->buf, line, i, len, last_status, data) < 0)
+	if (expand_dollar_ctx(qctx, i) < 0)
 		return (-4);
 	return (0);
 }
 
+/* <= 4 args */
 int	handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i)
 {
 	if (!ctx || !line || !i)
@@ -56,6 +49,51 @@ int	handle_regular_char(t_word_ctx *ctx, const char *line, size_t *i)
 	if (buf_append_char(&ctx->buf, line[*i]) < 0)
 		return (-3);
 	(*i)++;
+	return (0);
+}
+
+/* <= 4 args: ctx + src + i */
+static int	dispatch_char_ctx(t_word_ctx *ctx, t_word_src *src, size_t *i)
+{
+	char		c;
+	t_quote_ctx	qctx;
+
+	c = src->line[*i];
+	if (c == '\'')
+		return (handle_single_quote(ctx, src->line, i, src->len));
+	if (c == '"')
+	{
+		qctx.buf = &ctx->buf;
+		qctx.line = src->line;
+		qctx.len = src->len;
+		qctx.last_status = src->last_status;
+		qctx.data = src->data;
+		return (handle_double_quote_ctx_word(ctx, &qctx, i));
+	}
+	if (c == '$')
+	{
+		qctx.buf = &ctx->buf;
+		qctx.line = src->line;
+		qctx.len = src->len;
+		qctx.last_status = src->last_status;
+		qctx.data = src->data;
+		return (handle_dollar_ctx_word(ctx, &qctx, i));
+	}
+	return (handle_regular_char(ctx, src->line, i));
+}
+
+/* <= 4 args: ctx + src + i */
+int	process_chars_ctx(t_word_ctx *ctx, t_word_src *src, size_t *i)
+{
+	int	rc;
+
+	while (*i < src->len && !is_space((char)src->line[*i])
+		&& !is_operator((char)src->line[*i]))
+	{
+		rc = dispatch_char_ctx(ctx, src, i);
+		if (rc != 0)
+			return (rc);
+	}
 	return (0);
 }
 
@@ -89,17 +127,3 @@ int process_chars_ctx(t_word_ctx *ctx, const char *line,
 }
 
 */
-int	process_chars_ctx(t_word_ctx *ctx, const char *line,
-	size_t *i, size_t len, int last_status, t_data *data)
-{
-	int	rc;
-
-	while (*i < len && !is_space((char)line[*i])
-		&& !is_operator((char)line[*i]))
-	{
-		rc = dispatch_char(ctx, line, i, len, last_status, data);
-		if (rc != 0)
-			return (rc);
-	}
-	return (0);
-}

@@ -12,95 +12,76 @@
 
 #include "nanoshell.h"
 
-static int	append_operator(const char *line, size_t *i,
-	size_t len, t_token **head, int had_space)
+static int	append_operator_ctx(t_tokenizer_ctx *ctx, size_t *i, int had_space)
 {
 	t_token	*op;
-	t_token	*prev;
 
-	op = parse_operator(line, i, len);
+	op = parse_operator(ctx->line, i, ctx->len);
 	if (!op)
-	{
-		free_tokens(*head);
 		return (0);
-	}
-	prev = *head;
-	while (prev && prev->next)
-		prev = prev->next;
-	if (prev)
-	{
-		if (had_space)
-			prev->join_next = 0;
-		else
-			prev->join_next = 1;
-	}
-	token_append(head, op);
+	set_prev_join_next(ctx->head, had_space);
+	token_append(ctx->head, op);
 	return (1);
 }
 
-static int	append_word(const char *line, size_t *i, size_t len,
-	t_token **head, int last_status, t_data *data, int had_space)
+static int	append_word_ctx(t_tokenizer_ctx *ctx, size_t *i, int had_space)
 {
-	t_token	*word;
-	t_token	*prev;
+	t_word_src	src;
+	t_token		*word;
 
-	word = parse_word(line, i, len, last_status, data);
+	src.line = ctx->line;
+	src.len = ctx->len;
+	src.last_status = ctx->last_status;
+	src.data = ctx->data;
+	word = parse_word_ctx(&src, i);
 	if (!word)
-	{
-		free_tokens(*head);
 		return (0);
-	}
-	prev = *head;
-	while (prev && prev->next)
-		prev = prev->next;
-	if (prev)
-	{
-		if (had_space)
-			prev->join_next = 0;
-		else
-			prev->join_next = 1;
-	}
-	token_append(head, word);
+	set_prev_join_next(ctx->head, had_space);
+	token_append(ctx->head, word);
 	return (1);
 }
 
-static int	skip_spaces_with_flag(const char *line, size_t *i, size_t len)
+static int	is_operator_char(char c)
 {
-	size_t	before;
-
-	before = *i;
-	skip_spaces(line, i, len);
-	if (*i > before)
+	if (c == '<' || c == '>' || c == '|' || c == '&' || c == '(' || c == ')')
 		return (1);
 	return (0);
 }
 
+static int	process_one_token(t_tokenizer_ctx *ctx, size_t *i)
+{
+	int	had_space;
+
+	had_space = skip_spaces_with_flag(ctx->line, i, ctx->len);
+	if (*i >= ctx->len)
+		return (1);
+	if (is_operator_char(ctx->line[*i]))
+		return (append_operator_ctx(ctx, i, had_space));
+	return (append_word_ctx(ctx, i, had_space));
+}
+
 t_token	*tokenizer(const char *line, int last_status, t_data *data)
 {
-	t_token	*head;
-	size_t	i;
-	size_t	len;
-	int		had_space;
+	t_tokenizer_ctx	ctx;
+	t_token			*head;
+	size_t			i;
 
 	if (!line)
 		return (NULL);
-	len = ft_strlen(line);
+	ctx.line = line;
+	ctx.len = ft_strlen(line);
+	ctx.last_status = last_status;
+	ctx.data = data;
 	head = NULL;
+	ctx.head = &head;
 	i = 0;
-	while (i < len)
+	while (i < ctx.len)
 	{
-		had_space = skip_spaces_with_flag(line, &i, len);
-		if (i >= len)
-			break ;
-		if (line[i] == '<' || line[i] == '>' || line[i] == '|'
-			|| line[i] == '&' || line[i] == '(' || line[i] == ')')
+		if (!process_one_token(&ctx, &i))
 		{
-			if (!append_operator(line, &i, len, &head, had_space))
-				return (NULL);
-			continue ;
-		}
-		if (!append_word(line, &i, len, &head, last_status, data, had_space))
+			free_tokens(head);
 			return (NULL);
+		}
 	}
 	return (head);
 }

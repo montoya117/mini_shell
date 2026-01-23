@@ -28,8 +28,8 @@ static int	append_env_by_name(t_buf *buf, const char *name, t_data *data)
 	return (0);
 }
 
-static int	append_literal_range(t_buf *buf, const char *line, size_t start,
-								size_t end)
+static int	append_literal_range(t_buf *buf, const char *line,
+		size_t start, size_t end)
 {
 	while (start < end)
 	{
@@ -40,8 +40,8 @@ static int	append_literal_range(t_buf *buf, const char *line, size_t start,
 	return (0);
 }
 
-static int	braced_unclosed_append(t_buf *buf, const char *line, size_t start,
-									size_t current)
+static int	braced_unclosed_append(t_buf *buf, const char *line,
+		size_t start, size_t current)
 {
 	if (!buf || !line)
 		return (-1);
@@ -54,54 +54,52 @@ static int	braced_unclosed_append(t_buf *buf, const char *line, size_t start,
 	return (0);
 }
 
-int	handle_braced(t_buf *buf, const char *line, size_t *i,
-	size_t len, t_data *data)
+int	handle_braced_ctx(t_expand_ctx *ctx, size_t *i)
 {
 	size_t	start;
 	size_t	idlen;
 	char	*name;
 	int		rc;
 
-	if (!buf || !line || !i)
+	if (!ctx || !i)
 		return (-1);
 	(*i)++;
 	start = *i;
-	idlen = parse_identifier_len(line, *i, len);
+	idlen = parse_identifier_len(ctx->line, *i, ctx->len);
 	*i += idlen;
-	if (*i >= len || line[*i] != '}')
-		return (braced_unclosed_append(buf, line, start, *i));
-	name = ft_strndup(line + start, idlen);
+	if (*i >= ctx->len || ctx->line[*i] != '}')
+		return (braced_unclosed_append(ctx->buf, ctx->line, start, *i));
+	name = ft_strndup(ctx->line + start, idlen);
 	if (!name)
 		return (-1);
 	(*i)++;
-	rc = append_env_by_name(buf, name, data);
+	rc = append_env_by_name(ctx->buf, name, ctx->data);
 	free(name);
 	if (rc < 0)
 		return (-1);
 	return (0);
 }
 
-int	handle_simple(t_buf *buf, const char *line, size_t *i,
-	size_t len, t_data *data)
+int	handle_simple_ctx(t_expand_ctx *ctx, size_t *i)
 {
 	size_t	idlen;
 	char	*name;
 	int		rc;
 
-	if (!buf || !line || !i)
+	if (!ctx || !i)
 		return (-1);
-	idlen = parse_identifier_len(line, *i, len);
+	idlen = parse_identifier_len(ctx->line, *i, ctx->len);
 	if (idlen == 0)
 	{
-		if (buf_append_char(buf, '$') < 0)
+		if (buf_append_char(ctx->buf, '$') < 0)
 			return (-1);
 		return (0);
 	}
-	name = ft_strndup(line + *i, idlen);
+	name = ft_strndup(ctx->line + *i, idlen);
 	if (!name)
 		return (-1);
 	*i += idlen;
-	rc = append_env_by_name(buf, name, data);
+	rc = append_env_by_name(ctx->buf, name, ctx->data);
 	free(name);
 	if (rc < 0)
 		return (-1);

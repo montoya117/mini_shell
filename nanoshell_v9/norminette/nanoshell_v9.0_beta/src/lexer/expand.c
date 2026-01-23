@@ -48,25 +48,39 @@ int	expand_special_pid(t_buf *buf, size_t *i)
 	return (0);
 }
 
-int	expand_dollar(t_buf *buf, const char *line, size_t *i, size_t len,
-	int last_status, t_data *data)
+int	expand_dollar(t_expand_ctx *ctx, size_t *i)
 {
-	if (!buf || !line || !i)
+	if (!ctx || !ctx->buf || !ctx->line || !i)
 		return (-1);
-	if (*i >= len || line[*i] != '$')
+	if (*i >= ctx->len || ctx->line[*i] != '$')
 		return (0);
 	(*i)++;
-	if (*i >= len)
+	if (*i >= ctx->len)
 	{
-		if (buf_append_char(buf, '$') < 0)
+		if (buf_append_char(ctx->buf, '$') < 0)
 			return (-1);
 		return (0);
 	}
-	if (line[*i] == '?')
-		return (expand_special_status(buf, i, last_status));
-	if (line[*i] == '$')
-		return (expand_special_pid(buf, i));
-	if (line[*i] == '{')
-		return (handle_braced(buf, line, i, len, data));
-	return (handle_simple(buf, line, i, len, data));
+	if (ctx->line[*i] == '?')
+		return (expand_special_status(ctx->buf, i, ctx->last_status));
+	if (ctx->line[*i] == '$')
+		return (expand_special_pid(ctx->buf, i));
+	if (ctx->line[*i] == '{')
+		return (handle_braced_ctx(ctx, i));
+	return (handle_simple_ctx(ctx, i));
+}
+
+/* Wrapper con contexto para los llamadores existentes */
+int	expand_dollar_ctx(t_quote_ctx *qctx, size_t *i)
+{
+	t_expand_ctx	ctx;
+
+	if (!qctx || !i)
+		return (-1);
+	ctx.buf = qctx->buf;
+	ctx.line = qctx->line;
+	ctx.len = qctx->len;
+	ctx.last_status = qctx->last_status;
+	ctx.data = qctx->data;
+	return (expand_dollar(&ctx, i));
 }

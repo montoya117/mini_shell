@@ -46,8 +46,7 @@ static t_token	*finalize_token_from_ctx(size_t start, t_word_ctx *ctx)
 }
 // is_io_number y join_next ya están a 0 por defecto
 
-static t_token	*build_word_token(const char *line, size_t *i, size_t len,
-	size_t start, int last_status, t_data *data)
+static t_token	*build_word_token_ctx(t_word_src *src, size_t *i, size_t start)
 {
 	t_word_ctx	ctx;
 	int			rc;
@@ -58,15 +57,15 @@ static t_token	*build_word_token(const char *line, size_t *i, size_t len,
 	ctx.seen_unquoted = 0;
 	ctx.was_quoted = 0;
 	buf_init(&ctx.buf);
-	rc = process_chars_ctx(&ctx, line, i, len, last_status, data);
+	rc = process_chars_ctx(&ctx, src, i);
 	if (rc != 0)
 	{
 		if (rc == -1)
-			return (make_error_token_from_ctx(start, "unclosed single quote",
-					&ctx));
+			return (make_error_token_from_ctx(start,
+					"unclosed single quote", &ctx));
 		if (rc == -2)
-			return (make_error_token_from_ctx(start, "unclosed double quote",
-					&ctx));
+			return (make_error_token_from_ctx(start,
+					"unclosed double quote", &ctx));
 		free(ctx.buf.data);
 		return (NULL);
 	}
@@ -74,13 +73,13 @@ static t_token	*build_word_token(const char *line, size_t *i, size_t len,
 	return (tok);
 }
 
-t_token	*parse_word(const char *line, size_t *i, size_t len,
-	int last_status, t_data *data)
+/* <= 4 args: src + i */
+t_token	*parse_word_ctx(t_word_src *src, size_t *i)
 {
 	size_t	start;
 
-	if (!line || !i)
+	if (!src || !src->line || !i)
 		return (NULL);
 	start = *i;
-	return (build_word_token(line, i, len, start, last_status, data));
+	return (build_word_token_ctx(src, i, start));
 }

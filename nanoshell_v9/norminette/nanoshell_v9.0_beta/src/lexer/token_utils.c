@@ -77,3 +77,15 @@ t_token	*make_error_token_from_ctx(size_t start, const char *msg,
 		return (NULL);
 	return (token_new(TOKEN_ERROR, m, QT_NONE, (int)start));
 }
+
+t_token	*handle_greater(const char *line,
+	size_t *i, size_t len, size_t pos)
+{
+	if (*i + 1 < len && line[*i + 1] == '>')
+	{
+		*i += 2;
+		return (token_new(TOKEN_REDIR_APPEND, ft_strdup(">>"), QT_NONE, pos));
+	}
+	*i += 1;
+	return (token_new(TOKEN_REDIR_OUT, ft_strdup(">"), QT_NONE, pos));
+}
