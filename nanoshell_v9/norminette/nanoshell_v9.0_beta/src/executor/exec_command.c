@@ -60,12 +60,12 @@ void	reset_sig_in_child(void)
 
 void	exec_child(t_ast *node, t_data *data)
 {
-	char	**env_for_cmd;
-	char	*path;
-	int		status;
-	int		exit_code;
-	const char *err;
-	
+	char		**env_for_cmd;
+	char		*path;
+	int			status;
+	int			exit_code;
+	const char	*err;
+
 	exit_code = 127;
 	if (!node || !node->argv || !node->argv[0])
 		exit(exit_code);
@@ -127,7 +127,7 @@ void	exec_child(t_ast *node, t_data *data)
 }
 
 int exec_command(t_ast *node, t_data *data)
-{	
+{
 	pid_t	pid;
 	int		ret;
 
@@ -141,7 +141,6 @@ int exec_command(t_ast *node, t_data *data)
 		//?? If you support redirections on single builtins, handle them here
 		ret = call_builtin(node->argv, data);
 		return (ret);
-
 	}
 	// Everything else goes to a child
 	pid = fork();

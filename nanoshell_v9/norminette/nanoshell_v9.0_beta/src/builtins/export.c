@@ -1,9 +1,8 @@
-
 #include "nanoshell.h"
 
-int is_valid_identifier(char *arg)
+int	is_valid_identifier(char *arg)
 {
-	int i;
+	int	i;
 
 	if (!arg || arg[0] == '\0')
 		return (0);
@@ -12,7 +11,7 @@ int is_valid_identifier(char *arg)
 	i = 1;
 	while (arg[i])
 	{
-		if ( !ft_isalnum(arg[i]) && arg[i] != '_')
+		if (!ft_isalnum(arg[i]) && arg[i] != '_')
 			return (0);
 		i++;
 	}
@@ -20,9 +19,9 @@ int is_valid_identifier(char *arg)
 }
 
 // hace el set de *name y *value pero no los retorna
-void    split_name_value(const char *arg, char **name, char **value)
+void	split_name_value(const char *arg, char **name, char **value)
 {
-	char    *equal;
+	char	*equal;
 
 	if (!arg || !name || !value)
 		return ;
@@ -33,7 +32,7 @@ void    split_name_value(const char *arg, char **name, char **value)
 		if (!*name)
 		{
 			*value = NULL;
-			return;
+			return ;
 		}
 		*value = NULL;
 		return ;
@@ -42,7 +41,7 @@ void    split_name_value(const char *arg, char **name, char **value)
 	if (!*name)
 	{
 		*value = NULL;
-		return;
+		return ;
 	}
 	*value = ft_strdup(equal + 1);
 	if (!*value)
@@ -53,22 +52,19 @@ void    split_name_value(const char *arg, char **name, char **value)
 	}
 }
 
-void    print_sorted_env(char **envp)
+void	print_sorted_env(char **envp)
 {
-	char    **tmp;
-	char    *name;
-	char    *value;
-	int     count;
-	int     i;
-	int     j;
+	char	**tmp;
+	char	*name;
+	char	*value;
+	int		count;
+	int		i;
+	int		j;
 
-	// count entries
 	count = 0;
 	while (envp[count])
 		count++;
-	// duplicate envp
 	tmp = dup_env(envp);
-	// sort tmp (buble sort)    
 	i = 0;
 	while (i < count)
 	{
@@ -83,7 +79,6 @@ void    print_sorted_env(char **envp)
 		}
 		i++;
 	}
-	// Print each entry in declare -x format
 	i = 0;
 	while (i < count)
 	{
@@ -106,18 +101,16 @@ void    print_sorted_env(char **envp)
 	free_env(tmp);
 }
 
-int builtin_export(char **argv, t_data *data)
+int	builtin_export(char **argv, t_data *data)
 {
-	int     i;
-	int     status;
-	char    *name;
-	char    *value;
+	int		i;
+	int		status;
+	char	*name;
+	char	*value;
 
 	name = NULL;
 	value = NULL;
 	status = 0;
-	// argv[0] == export 
-	// case of export with no arguments
 	if (argv[1] == NULL)
 	{
 		print_sorted_env(data->envp);
@@ -143,9 +136,9 @@ int builtin_export(char **argv, t_data *data)
 		else
 		{
 			if (value == NULL)
-				set_env_var_data(data, name , ""); // export NAME
+				set_env_var_data(data, name, "");
 			else
-				set_env_var_data(data, name, value); // export NAME=VALUE
+				set_env_var_data(data, name, value);
 		}
 		free(name);
 		free(value);
@@ -154,7 +147,6 @@ int builtin_export(char **argv, t_data *data)
 	data->last_status = status;
 	return (status);
 }
-
 
 /*
 function print_sorted_declare_x(envp):

@@ -1,9 +1,9 @@
 #include "nanoshell.h"
 
-static int change_dir_update(const char *path, t_data *data)
+static int	change_dir_update(const char *path, t_data *data)
 {
-	char *prev;
-	char *now;
+	char	*prev;
+	char	*now;
 
 	if (!path || !data)
 		return (1);
@@ -29,10 +29,11 @@ static int change_dir_update(const char *path, t_data *data)
 	return (0);
 }
 
-int builtin_cd(char **argv, t_data *data)
+int	builtin_cd(char **argv, t_data *data)
 {
-	char *target;
-	int  rc;
+	char		*target;
+	int			rc;
+	const char	*pwd;
 
 	if (!data)
 		return (1);
@@ -42,8 +43,6 @@ int builtin_cd(char **argv, t_data *data)
 	rc = change_dir_update(target, data);
 	if (rc == 0 && argv[1] && ft_strncmp(argv[1], "-", 2) == 0)
 	{
-		const char *pwd;
-
 		pwd = get_var_from_envp(data->envp, "PWD");
 		if (pwd)
 			ft_putendl_fd((char *)pwd, 1);

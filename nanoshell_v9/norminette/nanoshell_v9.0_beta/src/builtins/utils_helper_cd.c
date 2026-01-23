@@ -1,6 +1,6 @@
 #include "nanoshell.h"
 
-char *copy_home_and_rest(const char *home, const char *path)
+char	*copy_home_and_rest(const char *home, const char *path)
 {
 	size_t	home_len;
 	size_t	path_len;
@@ -27,9 +27,9 @@ char *copy_home_and_rest(const char *home, const char *path)
 	return (res);
 }
 
-char *expand_home(const char *path, t_data *data)
+char	*expand_home(const char *path, t_data *data)
 {
-	const char *home;
+	const char	*home;
 
 	if (!path)
 		return (NULL);
@@ -44,10 +44,10 @@ char *expand_home(const char *path, t_data *data)
 	return (copy_home_and_rest(home, path));
 }
 
-char *resolve_cd_target(char **argv, t_data *data)
+char	*resolve_cd_target(char **argv, t_data *data)
 {
-	char *raw;
-	char *expanded;
+	char	*raw;
+	char	*expanded;
 
 	raw = get_raw_cd_target(argv, data);
 	if (!raw)

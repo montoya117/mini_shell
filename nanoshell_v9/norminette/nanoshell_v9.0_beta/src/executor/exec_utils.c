@@ -1,10 +1,10 @@
 
 #include "nanoshell.h"
 
-void    exec_error(const char *message, const char *subject)
+void	exec_error(const char *message, const char *subject)
 {
-	const char  *prefix;
-	const char  *err;
+	const char	*prefix;
+	const char	*err;
 
 	prefix = "minishell: ";
 	write(2, prefix, ft_strlen_const(prefix));
@@ -29,7 +29,7 @@ void    exec_error(const char *message, const char *subject)
 	write(2, "\n", 1);
 }
 
-char *heredoc_tmp_name(void)
+char	*heredoc_tmp_name(void)
 {
 	static int	n;
 	char		*num;
@@ -46,7 +46,7 @@ char *heredoc_tmp_name(void)
 	return (name);
 }
 
-char *create_heredoc_tmp(char *delimeter)
+char	*create_heredoc_tmp(char *delimeter)
 {
 	char	*path;
 	char	*line;
@@ -57,7 +57,6 @@ char *create_heredoc_tmp(char *delimeter)
 	path = heredoc_tmp_name();
 	if (!path)
 		return (NULL);
-	// only your minishell user can read/write the file
 	fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0600);
 	if (fd < 0)
 	{
@@ -72,27 +71,26 @@ char *create_heredoc_tmp(char *delimeter)
 		{
 			if (g_signal_received == SIGINT)
 			{
-				// heredoc cancelado por Ctrl+C
 				close(fd);
-				unlink(path);      // borrar tmp
+				unlink(path);
 				free(path);
-				g_signal_received = 0; // opcional, para no arrastrar el estado
-				return (NULL);     // indicar al parser que se canceló
+				g_signal_received = 0;
+				return (NULL);
 			}
-			break; // EOF normal
+			break ;
 		}
-			
 		len_line = ft_strlen(line);
 		len_delim = ft_strlen(delimeter);
-		if (len_line == len_delim && ft_strncmp(line, delimeter, len_delim) == 0)
+		if (len_line == len_delim && ft_strncmp(line, delimeter,
+				len_delim) == 0)
 		{
 			free(line);
-			break; // reached delimeter
+			break ;
 		}
 		write (fd, line, ft_strlen(line));
 		write (fd, "\n", 1);
 		free(line);
 	}
 	close(fd);
-	return (path); 
+	return (path);
 }

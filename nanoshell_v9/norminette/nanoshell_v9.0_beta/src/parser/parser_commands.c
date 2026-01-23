@@ -1,32 +1,31 @@
 
 #include "nanoshell.h"
 
-// Check ctx->error_status after each parsing step, and early-return if an error is detected.
+// Check ctx->error_status after each parsing step,
+//and early-return if an error is detected.
 
-t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
+t_ast	*parser_commands(t_token **ptokens, t_parser_context *ctx)
 {
-	t_token     *token;
-	t_token     *tmp;
-	t_token     *last_word;
-	t_token     *words_start;
-	t_ast       *cmd;
-	t_ast       *base_cmd;
-	t_token_type redirect_type;
-	char        *redirect_file;
-	int         fd_dest;
-	int         assign_count;
-	int         argc;
-	int         i;
-	char        **assignments;
-	char        **argv;
+	t_token			*token;
+	t_token			*tmp;
+	t_token			*last_word;
+	t_token			*words_start;
+	t_ast			*cmd;
+	t_ast			*base_cmd;
+	t_token_type	redirect_type;
+	char			*redirect_file;
+	int				fd_dest;
+	int				assign_count;
+	int				argc;
+	int				i;
+	char			**assignments;
+	char			**argv;
 
 	token = *ptokens;
-
 	/* 0- crear comando base vacío (para soportar redirecciones iniciales) */
 	cmd = ast_new_command(NULL, NULL);
 	if (!cmd)
 		return (NULL);
-
 	/* 1- REDIRECCIONES INICIALES: <in >out </dev/null ... */
 	while (token && (token->type == TOKEN_REDIR_IN
 			|| token->type == TOKEN_REDIR_OUT
@@ -76,11 +75,9 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 		cmd->redirect_fd = fd_dest;
 		token = token->next;
 	}
-
 	/* 2- PRIMERA PASADA: contar assignments + args (WORD / EXPANSION) */
 	assign_count = 0;
 	argc = 0;
-
 	tmp = token;
 	while (tmp && (tmp->type == TOKEN_WORD || tmp->type == TOKEN_EXPANSION)
 		&& is_assignment_word(tmp->text))
@@ -93,7 +90,6 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 		argc++;
 		tmp = tmp->next;
 	}
-
 	if (assign_count == 0 && argc == 0)
 	{
 		/* solo redirecciones (tipo </dev/null >/tmp/log) → decide si lo aceptas o lo tratas como error */
@@ -106,13 +102,11 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 		*ptokens = tmp;
 		return (cmd);
 	}
-
 	/* 3- reservar arrays */
 	assignments = NULL;
 	if (assign_count > 0)
 		assignments = safe_malloc((assign_count + 1) * sizeof(char *));
 	argv = safe_malloc((argc + 1) * sizeof(char *));
-
 	/* 4- SEGUNDA PASADA: copiar assignments y preparar last_word/io_number */
 	i = 0;
 	while (i < assign_count)
@@ -123,9 +117,7 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 	}
 	if (assignments)
 		assignments[assign_count] = NULL;
-
 	words_start = token;
-
 	last_word = NULL;
 	tmp = token;
 	while (tmp && (tmp->type == TOKEN_WORD || tmp->type == TOKEN_EXPANSION))
@@ -135,7 +127,6 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 		tmp = tmp->next;
 	}
 	/* tmp ahora está en la primera redirección final (o NULL) */
-
 	/* 5- REDIRECCIONES FINALES + io_number */
 	token = tmp;
 	while (token && (token->type == TOKEN_REDIR_IN
@@ -145,9 +136,8 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 	{
 		redirect_type = token->type;
 		fd_dest = -1;
-
 		if ((redirect_type == TOKEN_REDIR_OUT
-			 || redirect_type == TOKEN_REDIR_APPEND)
+				|| redirect_type == TOKEN_REDIR_APPEND)
 			&& last_word
 			&& last_word->type == TOKEN_WORD
 			&& is_all_digits(last_word->text)
@@ -157,7 +147,6 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 			fd_dest = ft_atoi(last_word->text);
 			last_word->is_io_number = 1;
 		}
-
 		token = token->next;
 		if (!token || token->type != TOKEN_WORD)
 		{
@@ -165,7 +154,6 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 			ast_free(cmd);
 			return (NULL);
 		}
-
 		redirect_file = NULL;
 		if (redirect_type == TOKEN_HEREDOC)
 		{
@@ -200,7 +188,6 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 		cmd->redirect_fd = fd_dest;
 		token = token->next;
 	}
-
 	/* 6- TERCERA PASADA: llenar argv saltando io_number */
 	i = 0;
 	tmp = words_start;
@@ -213,12 +200,10 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 		tmp = tmp->next;
 	}
 	argv[i] = NULL;
-
 	/* 7- asignar argv/assignments al AST_COMMAND de la base */
 	base_cmd = cmd;
 	while (base_cmd && base_cmd->type == AST_REDIRECT)
 		base_cmd = base_cmd->left;
-
 	if (!base_cmd || base_cmd->type != AST_COMMAND)
 	{
 		set_parser_error(ctx, "internal parser error", token);
@@ -227,11 +212,9 @@ t_ast *parser_commands(t_token **ptokens, t_parser_context *ctx)
 	}
 	base_cmd->argv = argv;
 	base_cmd->assignments = assignments;
-
 	*ptokens = token;
 	return (cmd);
 }
-
 
 t_ast	*parser_logical(t_token **ptokens, t_parser_context *ctx)
 {
@@ -241,10 +224,10 @@ t_ast	*parser_logical(t_token **ptokens, t_parser_context *ctx)
 	t_ast			*right;
 
 	token = *ptokens;
-	if (token && (token->type == TOKEN_AND || token->type == TOKEN_OR)) 
+	if (token && (token->type == TOKEN_AND || token->type == TOKEN_OR))
 	{
 		set_parser_error(ctx, "operator at start of input", token);
-		return NULL;
+		return (NULL);
 	}
 	left = parser_pipe(&token, ctx);
 	if (ctx->error_status)
@@ -255,7 +238,7 @@ t_ast	*parser_logical(t_token **ptokens, t_parser_context *ctx)
 		token = token->next;
 		if (!token)
 		{
-			set_parser_error(ctx,  "operator at end of input", token);
+			set_parser_error(ctx, "operator at end of input", token);
 			return (NULL);
 		}
 		right = parser_pipe(&token, ctx);
@@ -270,20 +253,19 @@ t_ast	*parser_logical(t_token **ptokens, t_parser_context *ctx)
 	return (left);
 }
 
-
-t_ast   *parser_pipe(t_token **ptokens, t_parser_context *ctx)
+t_ast	*parser_pipe(t_token **ptokens, t_parser_context *ctx)
 {
 	t_token			*token;
-	t_ast           *pipe_node;
+	t_ast			*pipe_node;
 	t_ast			*left;
 	t_ast			*right;
-	t_ast_list      *pipe_list;
-	
+	t_ast_list		*pipe_list;
+
 	token = *ptokens;
 	if (token && token->type == TOKEN_PIPE)
 	{
 		set_parser_error(ctx, "pipe at start of input", token);
-		return NULL;
+		return (NULL);
 	}
 	left = parser_command_or_subshell(&token, ctx);
 	if (ctx->error_status)
@@ -303,7 +285,7 @@ t_ast   *parser_pipe(t_token **ptokens, t_parser_context *ctx)
 			set_parser_error(ctx, "expected command after pipe", token);
 			return (NULL);
 		}
-		right  = parser_command_or_subshell(&token, ctx);
+		right = parser_command_or_subshell(&token, ctx);
 		if (ctx->error_status)
 			return (NULL);
 		// create new list with left, add right.. create the ast_pipe with this
@@ -314,12 +296,12 @@ t_ast   *parser_pipe(t_token **ptokens, t_parser_context *ctx)
 	return (pipe_node);
 }
 
-t_ast   *parser_subshell(t_token **ptokens, t_parser_context *ctx)
+t_ast	*parser_subshell(t_token **ptokens, t_parser_context *ctx)
 {
-	t_token *token;
-	t_ast   *subshell;
-	t_ast   *cmd;
-	
+	t_token	*token;
+	t_ast	*subshell;
+	t_ast	*cmd;
+
 	token = *ptokens;
 	cmd = NULL;
 	if (token && token->type == TOKEN_LPAREN)
@@ -342,7 +324,7 @@ t_ast   *parser_subshell(t_token **ptokens, t_parser_context *ctx)
 	return (cmd);
 }
 
-t_ast   *parser_command_or_subshell(t_token **ptokens, t_parser_context *ctx)
+t_ast	*parser_command_or_subshell(t_token **ptokens, t_parser_context *ctx)
 {
 	t_ast	*node;
 

@@ -47,7 +47,8 @@ int	spawn_children_checked(t_ast **cmds, int n, int (*pipes)[2],
 	return (0);
 }
 
-int	setup_resources(int n, int (*(*pipes_out))[2], pid_t **pids_out, t_data *data)
+int	setup_resources(int n, int (*(*pipes_out))[2],
+	pid_t **pids_out, t_data *data)
 {
 	int		(*pipes)[2];
 	pid_t	*pids;

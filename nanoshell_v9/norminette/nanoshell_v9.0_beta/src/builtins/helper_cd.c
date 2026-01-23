@@ -1,8 +1,8 @@
 #include "nanoshell.h"
 
-static char *raw_no_arg(void)
+static char	*raw_no_arg(void)
 {
-	char *raw;
+	char	*raw;
 
 	raw = ft_strdup("");
 	if (!raw)
@@ -10,9 +10,9 @@ static char *raw_no_arg(void)
 	return (raw);
 }
 
-static char *raw_double_dash(char **argv)
+static char	*raw_double_dash(char **argv)
 {
-	char *raw;
+	char	*raw;
 
 	if (argv[2])
 		raw = ft_strdup(argv[2]);
@@ -23,10 +23,10 @@ static char *raw_double_dash(char **argv)
 	return (raw);
 }
 
-static char *raw_dash_oldpwd(t_data *data)
+static char	*raw_dash_oldpwd(t_data *data)
 {
-	const char *oldpwd;
-	char *raw;
+	const char	*oldpwd;
+	char		*raw;
 
 	oldpwd = get_var_from_envp(data->envp, "OLDPWD");
 	if (!oldpwd)
@@ -40,9 +40,9 @@ static char *raw_dash_oldpwd(t_data *data)
 	return (raw);
 }
 
-static char *raw_from_arg(char **argv)
+static char	*raw_from_arg(char **argv)
 {
-	char *raw;
+	char	*raw;
 
 	raw = ft_strdup(argv[1]);
 	if (!raw)
@@ -50,9 +50,9 @@ static char *raw_from_arg(char **argv)
 	return (raw);
 }
 
-char *get_raw_cd_target(char **argv, t_data *data)
+char	*get_raw_cd_target(char **argv, t_data *data)
 {
-	char *raw;
+	char	*raw;
 
 	if (!argv || !data)
 		return (NULL);

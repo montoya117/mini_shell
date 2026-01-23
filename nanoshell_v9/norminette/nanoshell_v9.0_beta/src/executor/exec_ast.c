@@ -12,40 +12,40 @@
 
 #include "nanoshell.h"
 
-static int  exec_or(t_ast *node, t_data *data)
+static int	exec_or(t_ast *node, t_data *data)
 {
-	int status;
+	int	status;
 
 	if (!node || node->type != AST_OR)
 		return (1);
 	status = exec_ast(node->left, data);
-	if ( status != 0)
+	if (status != 0)
 		return (exec_ast(node->right, data));
-	return (status);    
+	return (status);
 }
 
-static int  exec_and(t_ast *node, t_data *data)
+static int	exec_and(t_ast *node, t_data *data)
 {
-	int status;
+	int	status;
 
-		if (!node || node->type != AST_AND)
-			return (1);
-		status = exec_ast(node->left, data);
-		if  (status == 0)
-			return (exec_ast(node->right, data));
-		return (status);
+	if (!node || node->type != AST_AND)
+		return (1);
+	status = exec_ast(node->left, data);
+	if  (status == 0)
+		return (exec_ast(node->right, data));
+	return (status);
 }
 
-int exec_ast_in_child(t_ast *node, t_data *data)
+int	exec_ast_in_child(t_ast *node, t_data *data)
 {
-	int status;
+	int	status;
 
 	if (!node)
 		return (0);
 	else if (node->type == AST_COMMAND)
 	{
-		exec_child(node, data); // never returns on success
-		return (127); // fallback
+		exec_child(node, data);
+		return (127);
 	}
 	else if (node->type == AST_AND)
 		status = exec_and(node, data);
@@ -56,8 +56,8 @@ int exec_ast_in_child(t_ast *node, t_data *data)
 	else if (node->type == AST_SUBSHELL)
 		status = exec_subshell(node, data);
 	else
-		status = 1; // no AST_REDIRECT here on purpose
-	return status;
+		status = 1;
+	return (status);
 }
 
 int	exec_ast(t_ast *node, t_data *data)

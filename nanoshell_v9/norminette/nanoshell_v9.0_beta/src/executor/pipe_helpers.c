@@ -12,9 +12,9 @@
 
 #include "nanoshell.h"
 
-void close_all_pipes(int (*pipes)[2], int n)
+void	close_all_pipes(int (*pipes)[2], int n)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	if (!pipes || n <= 0)
@@ -37,12 +37,12 @@ void close_all_pipes(int (*pipes)[2], int n)
 	}
 }
 
-int wait_for_all(pid_t *pids, int count)
+int	wait_for_all(pid_t *pids, int count)
 {
-	int     i;
-	int     last;
-	int     status;
-	pid_t   w;
+	int		i;
+	int		last;
+	int		status;
+	pid_t	w;
 
 	if (!pids || count <= 0)
 		return (0);
@@ -55,7 +55,7 @@ int wait_for_all(pid_t *pids, int count)
 			w = wait_one(pids[i], &status);
 			if (w == -1)
 				last = 127;
-			else 
+			else
 				last = status_to_code(status);
 		}
 		i++;

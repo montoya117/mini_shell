@@ -12,7 +12,7 @@
 
 #include "nanoshell.h"
 
-static char *join_dir_cmd(const char *dir, const char *cmd)
+static char	*join_dir_cmd(const char *dir, const char *cmd)
 {
 	size_t	dir_len;
 	size_t	cmd_len;
@@ -36,10 +36,10 @@ static char *join_dir_cmd(const char *dir, const char *cmd)
 	return (out);
 }
 
-int  try_path_segment(const char *seg, const char *cmd, char ** out)
+int	try_path_segment(const char *seg, const char *cmd, char **out)
 {
-	char        *candidate;
-	const char  *dir;
+	char		*candidate;
+	const char	*dir;
 
 	if (!seg || !cmd || !out)
 		return (0);
@@ -59,13 +59,13 @@ int  try_path_segment(const char *seg, const char *cmd, char ** out)
 	return (0);
 }
 
-static char *search_path_segments(const char *path, const char *cmd)
+static char	*search_path_segments(const char *path, const char *cmd)
 {
-	size_t  len;
-	size_t  start;
-	size_t  i;
-	char    *res;
-	int     rc;
+	size_t	len;
+	size_t	start;
+	size_t	i;
+	char	*res;
+	int		rc;
 
 	if (!path || !cmd)
 		return (NULL);
@@ -80,15 +80,15 @@ static char *search_path_segments(const char *path, const char *cmd)
 		if (rc == 1)
 			return (res);
 		if (rc == -1)
-			return (NULL); /* propagar error de malloc */
+			return (NULL);
 		start = i + 1;
 	}
 	return (NULL);
 }
 
-static char *get_envp_path(char **envp)
+static char	*get_envp_path(char **envp)
 {
-	int i;
+	int	i;
 
 	if (!envp)
 		return (NULL);
@@ -102,9 +102,9 @@ static char *get_envp_path(char **envp)
 	return (NULL);
 }
 
-char    *find_path(char *cmd, char **envp)
+char	*find_path(char *cmd, char **envp)
 {
-	char    *path;
+	char	*path;
 
 	if (!cmd || !*cmd)
 		return (NULL);
@@ -117,5 +117,5 @@ char    *find_path(char *cmd, char **envp)
 	path = get_envp_path(envp);
 	if (!path)
 		return (NULL);
-   return (search_path_segments(path, cmd));
+	return (search_path_segments(path, cmd));
 }
