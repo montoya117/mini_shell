@@ -1,4 +1,3 @@
-
 #include "nanoshell.h"
 
 static int	open_redirect(t_ast *redir)
@@ -95,11 +94,20 @@ void	apply_redirect_and_exec_child(t_ast *node, t_data *data)
 	exit(127);
 }
 
+static void	unlink_heredocs(t_ast *node)
+{
+	while (node && node->type == AST_REDIRECT)
+	{
+		if (node->redirect_type == TOKEN_HEREDOC && node->file)
+			unlink(node->file);
+		node = node->left;
+	}
+}
+
 int	apply_redirect_and_exec(t_ast *node, t_data *data)
 {
 	pid_t	pid;
 	int		ret;
-	t_ast	*tmp;
 
 	if (!node)
 		return (1);
@@ -109,22 +117,13 @@ int	apply_redirect_and_exec(t_ast *node, t_data *data)
 		exec_error("fork failed", NULL);
 		return (1);
 	}
-	else if (pid == 0)
+	if (pid == 0)
 	{
 		apply_redirect_and_exec_child(node, data);
 		exit(1);
 	}
-	else
-	{
-		ret = wait_for_child(pid);
-		tmp = node;
-		while (tmp && tmp->type == AST_REDIRECT)
-		{
-			if (tmp->redirect_type == TOKEN_HEREDOC && tmp->file)
-				unlink(tmp->file);
-			tmp = tmp->left;
-		}
-		data->last_status = ret;
-		return (data->last_status);
-	}
+	ret = wait_for_child(pid);
+	unlink_heredocs(node);
+	data->last_status = ret;
+	return (data->last_status);
 }
