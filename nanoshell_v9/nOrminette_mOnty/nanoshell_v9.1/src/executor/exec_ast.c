@@ -31,7 +31,7 @@ static int	exec_and(t_ast *node, t_data *data)
 	if (!node || node->type != AST_AND)
 		return (1);
 	status = exec_ast(node->left, data);
-	if  (status == 0)
+	if (status == 0)
 		return (exec_ast(node->right, data));
 	return (status);
 }

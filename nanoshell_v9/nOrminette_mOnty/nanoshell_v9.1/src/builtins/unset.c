@@ -1,6 +1,62 @@
-
 #include "nanoshell.h"
 
+static void	remove_env_var(t_data *data, int pos)
+{
+	char	**new_env;
+	int		size;
+	int		i;
+	int		j;
+
+	if (!data->envp)
+		return ;
+	size = 0;
+	while (data->envp[size])
+		size++;
+	new_env = safe_malloc(size * sizeof(char *));
+	i = -1;
+	j = 0;
+	while (++i < size)
+	{
+		if (i == pos)
+			free(data->envp[i]);
+		else
+			new_env[j++] = data->envp[i];
+		i++;
+	}
+	new_env[j] = NULL;
+	free(data->envp);
+	data->envp = new_env;
+}
+
+int	builtin_unset(char **argv, t_data *data)
+{
+	int	i;
+	int	pos;
+	int	status;
+
+	if (!argv || !argv[1] || !data)
+		return (0);
+	status = 0;
+	i = 1;
+	while (argv[i])
+	{
+		if (!is_valid_identifier(argv[i]))
+		{
+			builtin_error("unset", argv[i], "not a valid identifier");
+			//status = 1;
+		}
+		else
+		{
+			pos = find_name(data->envp, argv[i]);
+			if (pos >= 0)
+				remove_env_var(data, pos);
+		}
+		i++;
+	}
+	return (status);
+}
+
+/*
 // basically copy all the envp with the same size and then i 
 // go thru it and delete the one at the found position correct
 // so u re-arrange it
@@ -57,3 +113,5 @@ int	builtin_unset(char **argv, t_data *data)
 	}
 	return (status);
 }
+
+*/

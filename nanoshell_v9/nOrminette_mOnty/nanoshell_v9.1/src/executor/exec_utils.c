@@ -1,4 +1,3 @@
-
 #include "nanoshell.h"
 
 void	exec_error(const char *message, const char *subject)
@@ -46,6 +45,78 @@ char	*heredoc_tmp_name(void)
 	return (name);
 }
 
+static int	is_delim(char *line, char *delimiter)
+{
+	size_t	len;
+
+	if (!line)
+		return (0);
+	len = ft_strlen(delimiter);
+	if (ft_strlen(line) == len && ft_strncmp(line, delimiter, len) == 0)
+		return (1);
+	return (0);
+}
+
+/*
+** Returns 0 on success (EOF or delimiter found)
+** Returns -1 if interrupted by SIGINT
+*/
+
+static int	write_heredoc_loop(int fd, char *delimiter)
+{
+	char	*line;
+
+	while (1)
+	{
+		line = readline("> ");
+		if (g_signal_received == SIGINT)
+		{
+			if (line)
+				free(line);
+			return (-1);
+		}
+		if (!line)
+			break ;
+		if (is_delim(line, delimiter))
+		{
+			free(line);
+			break ;
+		}
+		write(fd, line, ft_strlen(line));
+		write(fd, "\n", 1);
+		free(line);
+	}
+	return (0);
+}
+
+char	*create_heredoc_tmp(char *delimiter)
+{
+	char	*path;
+	int		fd;
+
+	path = heredoc_tmp_name();
+	if (!path)
+		return (NULL);
+	fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+	if (fd < 0)
+	{
+		exec_error("open failed", path);
+		free(path);
+		return (NULL);
+	}
+	if (write_heredoc_loop(fd, delimiter) == -1)
+	{
+		close(fd);
+		unlink(path);
+		free(path);
+		g_signal_received = 0;
+		return (NULL);
+	}
+	close(fd);
+	return (path);
+}
+
+/*
 char	*create_heredoc_tmp(char *delimeter)
 {
 	char	*path;
@@ -94,3 +165,4 @@ char	*create_heredoc_tmp(char *delimeter)
 	close(fd);
 	return (path);
 }
+*/

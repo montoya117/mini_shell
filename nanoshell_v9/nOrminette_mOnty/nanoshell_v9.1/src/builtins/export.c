@@ -18,6 +18,112 @@ int	is_valid_identifier(char *arg)
 	return (1);
 }
 
+/* ** 1. Sort helper (Bubble sort on a copy)
+*/
+static char	**get_sorted_env(char **envp)
+{
+	char	**tmp;
+	int		i;
+	int		j;
+
+	tmp = dup_env(envp);
+	if (!tmp)
+		return (NULL);
+	i = 0;
+	while (tmp[i])
+	{
+		j = i + 1;
+		while (tmp[j])
+		{
+			if (ft_strcmp(tmp[i], tmp[j]) > 0)
+				ft_swap_str(&tmp[i], &tmp[j]);
+			j++;
+		}
+		i++;
+	}
+	return (tmp);
+}
+
+/* ** 2. Print logic without extra mallocs
+** Using printf precision (%.*s) prevents creating a substring just to print it
+*/
+static void	print_export_line(char *env_str)
+{
+	char	*eq;
+	int		len;
+
+	eq = ft_strchr(env_str, '=');
+	if (eq)
+	{
+		len = (int)(eq - env_str);
+		printf("declare -x %.*s=\"%s\"\n", len, env_str, eq + 1);
+	}
+	else
+		printf("declare -x %s\n", env_str);
+}
+
+/* ** 3. Process individual argument
+*/
+static int	process_export_arg(t_data *data, char *arg)
+{
+	char	*eq;
+	char	*name;
+	char	*val;
+
+	eq = ft_strchr(arg, '=');
+	if (eq)
+	{
+		name = ft_substr(arg, 0, eq - arg);
+		val = ft_strdup(eq + 1);
+	}
+	else
+	{
+		name = ft_strdup(arg);
+		val = NULL;
+	}
+	if (!is_valid_identifier(name))
+	{
+		builtin_error("export", arg, "not a valid identifier");
+		return (free(name), free(val), 1);
+	}
+	if (val != NULL)
+		set_env_var_data(data, name, val);
+	else if (find_name(data->envp, name) < 0)
+		set_env_var_data(data, name, "");
+	return (free(name), free(val), 0);
+}
+
+/* ** 4. Main Export Builtin
+*/
+int	builtin_export(char **argv, t_data *data)
+{
+	int		i;
+	int		status;
+	char	**sorted;
+
+	status = 0;
+	if (!argv || !argv[1])
+	{
+		sorted = get_sorted_env(data->envp);
+		if (!sorted)
+			return (1);
+		i = 0;
+		while (sorted[i])
+			print_export_line(sorted[i++]);
+		free_env(sorted);
+		return (0);
+	}
+	i = 1;
+	while (argv[i])
+	{
+		if (process_export_arg(data, argv[i]) != 0)
+			status = 1;
+		i++;
+	}
+	return (status);
+}
+
+/*
 // hace el set de *name y *value pero no los retorna
 void	split_name_value(const char *arg, char **name, char **value)
 {
@@ -147,14 +253,4 @@ int	builtin_export(char **argv, t_data *data)
 	data->last_status = status;
 	return (status);
 }
-
-/*
-function print_sorted_declare_x(envp):
-	# 1) count n
-	# 2) duplicate envp -> tmp
-	# 3) bubble sort tmp with strcmp
-	# 4) for each tmp[i]:
-	#       split at '='
-	#       print "declare -x NAME=\"VALUE\""
-	# 5) free tmp strings + array
 */
