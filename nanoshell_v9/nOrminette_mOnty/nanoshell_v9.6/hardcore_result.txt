@@ -1,0 +1,1230 @@
+[1;36m╔═══════════════════════════════════════════════════════════════╗[0m
+[1;36m║         MINISHELL HARDCORE EDGE CASES TEST SUITE              ║[0m
+[1;36m╚═══════════════════════════════════════════════════════════════╝[0m
+[1;36m== 1) REDIRECTIONS - Edge Cases Avanzados ==[0m
+[1;33mTEST #1 (FEED): múltiples redirects mismo comando[0m
+Script:
+----------------------------------------
+echo test > out1 > out2
+cat out2
+cat out1
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: test
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.jU6zljXHoJ/bash.out	2026-01-13 11:55:33.606981095 +0100
++++ /tmp/tmp.jU6zljXHoJ/mini.out	2026-01-13 11:55:33.606981095 +0100
+@@ -1 +0,0 @@
+-test
+[1;32mSTATUS OK[0m
+[0;37mNota: Solo out2 debe tener contenido 'test'[0m
+
+----------------------------------------
+
+[1;33mTEST #2 (FEED): redirect + pipe con fallo[0m
+Script:
+----------------------------------------
+echo content > testfile
+cat < testfile | grep content
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: content
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.ElqrqDHgGq/bash.out	2026-01-13 11:55:33.646981091 +0100
++++ /tmp/tmp.ElqrqDHgGq/mini.out	2026-01-13 11:55:33.646981091 +0100
+@@ -1 +0,0 @@
+-content
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #3: redirect antes del comando[0m
+CMD: \<\ /etc/passwd\ head\ -3
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: root:x:0:0:root:/root:/bin/bash
+BASH: daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+BASH: bin:x:2:2:bin:/bin:/usr/sbin/nologin
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: root:x:0:0:root:/root:/bin/bash
+MINISHELL: daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+MINISHELL: bin:x:2:2:bin:/bin:/usr/sbin/nologin
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #4 (FEED): múltiples heredocs[0m
+Script:
+----------------------------------------
+cat << EOF1 << EOF2
+first
+EOF1
+second
+EOF2
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: second
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.HHJ7rHeq3c/bash.out	2026-01-13 11:55:33.706981086 +0100
++++ /tmp/tmp.HHJ7rHeq3c/mini.out	2026-01-13 11:55:33.706981086 +0100
+@@ -1 +0,0 @@
+-second
+[1;32mSTATUS OK[0m
+[0;37mNota: Solo el último heredoc debe usarse[0m
+
+----------------------------------------
+
+[1;33mTEST #5 (FEED): heredoc con expansión[0m
+Script:
+----------------------------------------
+VAR=expanded
+cat << EOF
+$VAR
+EOF
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: expanded
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.aZtWV3PoRX/bash.out	2026-01-13 11:55:33.736981083 +0100
++++ /tmp/tmp.aZtWV3PoRX/mini.out	2026-01-13 11:55:33.736981083 +0100
+@@ -1 +0,0 @@
+-expanded
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #6 (FEED): heredoc sin expansión (quoted)[0m
+Script:
+----------------------------------------
+VAR=notexpanded
+cat << "EOF"
+$VAR
+EOF
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: $VAR
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.WWOHNqYOcb/bash.out	2026-01-13 11:55:33.766981081 +0100
++++ /tmp/tmp.WWOHNqYOcb/mini.out	2026-01-13 11:55:33.766981081 +0100
+@@ -1 +0,0 @@
+-$VAR
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #7: redirect stderr a archivo[0m
+CMD: ls\ /nonexistent\ 2\>\ err.txt
+BASH STATUS: 2
+MINISHELL STATUS: 2
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 2) CD - Edge Cases Completos ==[0m
+[1;33mTEST #8 (FEED): cd sin argumentos (va a HOME)[0m
+Script:
+----------------------------------------
+cd
+pwd
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: /home/alemonto
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.GLeitug0ll/bash.out	2026-01-13 11:55:33.816981076 +0100
++++ /tmp/tmp.GLeitug0ll/mini.out	2026-01-13 11:55:33.816981076 +0100
+@@ -1 +0,0 @@
+-/home/alemonto
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #9 (FEED): cd con HOME unset[0m
+Script:
+----------------------------------------
+unset HOME
+cd
+echo $?
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 1
+BASH STDERR:
+BASH: bash: line 2: cd: HOME not set
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.yDn9xFbrbp/bash.out	2026-01-13 11:55:33.836981074 +0100
++++ /tmp/tmp.yDn9xFbrbp/mini.out	2026-01-13 11:55:33.836981074 +0100
+@@ -1 +0,0 @@
+-1
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.yDn9xFbrbp/bash.err	2026-01-13 11:55:33.836981074 +0100
++++ /tmp/tmp.yDn9xFbrbp/mini.err	2026-01-13 11:55:33.836981074 +0100
+@@ -1 +0,0 @@
+-bash: line 2: cd: HOME not set
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #10 (FEED): cd con múltiples argumentos[0m
+Script:
+----------------------------------------
+cd /tmp /home
+echo $?
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 1
+BASH STDERR:
+BASH: bash: line 1: cd: too many arguments
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.IdytuU0aQ2/bash.out	2026-01-13 11:55:33.876981071 +0100
++++ /tmp/tmp.IdytuU0aQ2/mini.out	2026-01-13 11:55:33.876981071 +0100
+@@ -1 +0,0 @@
+-1
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.IdytuU0aQ2/bash.err	2026-01-13 11:55:33.876981071 +0100
++++ /tmp/tmp.IdytuU0aQ2/mini.err	2026-01-13 11:55:33.876981071 +0100
+@@ -1 +0,0 @@
+-bash: line 1: cd: too many arguments
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #11 (FEED): cd a archivo (no directorio)[0m
+Script:
+----------------------------------------
+touch testfile
+cd testfile
+echo $?
+rm testfile
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 1
+BASH STDERR:
+BASH: bash: line 2: cd: testfile: Not a directory
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.laP9eb9UXr/bash.out	2026-01-13 11:55:33.916981067 +0100
++++ /tmp/tmp.laP9eb9UXr/mini.out	2026-01-13 11:55:33.916981067 +0100
+@@ -1 +0,0 @@
+-1
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.laP9eb9UXr/bash.err	2026-01-13 11:55:33.916981067 +0100
++++ /tmp/tmp.laP9eb9UXr/mini.err	2026-01-13 11:55:33.916981067 +0100
+@@ -1 +0,0 @@
+-bash: line 2: cd: testfile: Not a directory
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #12 (FEED): cd path relativo ..[0m
+Script:
+----------------------------------------
+cd ..
+pwd
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: /mnt/c/Users/pc/Desktop/mini_shell_1201/nanoshell_v8
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.VyN40umoR6/bash.out	2026-01-13 11:55:33.946981065 +0100
++++ /tmp/tmp.VyN40umoR6/mini.out	2026-01-13 11:55:33.946981065 +0100
+@@ -1 +0,0 @@
+-/mnt/c/Users/pc/Desktop/mini_shell_1201/nanoshell_v8
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #13 (FEED): cd path relativo .[0m
+Script:
+----------------------------------------
+cd .
+pwd
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: /mnt/c/Users/pc/Desktop/mini_shell_1201/nanoshell_v8/nanoshell_v8.4
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.adkyxJ9uqD/bash.out	2026-01-13 11:55:33.976981062 +0100
++++ /tmp/tmp.adkyxJ9uqD/mini.out	2026-01-13 11:55:33.976981062 +0100
+@@ -1 +0,0 @@
+-/mnt/c/Users/pc/Desktop/mini_shell_1201/nanoshell_v8/nanoshell_v8.4
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #14 (FEED): cd directorio inexistente[0m
+Script:
+----------------------------------------
+cd /nonexistent_xyz_dir
+echo $?
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 1
+BASH STDERR:
+BASH: bash: line 1: cd: /nonexistent_xyz_dir: No such file or directory
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.Ocp95ZZYwg/bash.out	2026-01-13 11:55:34.006981059 +0100
++++ /tmp/tmp.Ocp95ZZYwg/mini.out	2026-01-13 11:55:34.006981059 +0100
+@@ -1 +0,0 @@
+-1
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.Ocp95ZZYwg/bash.err	2026-01-13 11:55:34.006981059 +0100
++++ /tmp/tmp.Ocp95ZZYwg/mini.err	2026-01-13 11:55:34.006981059 +0100
+@@ -1 +0,0 @@
+-bash: line 1: cd: /nonexistent_xyz_dir: No such file or directory
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 3) EXPORT - Edge Cases Completos ==[0m
+[1;33mTEST #15 (FEED): export sin argumentos (listar)[0m
+Script:
+----------------------------------------
+export | head -5
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: declare -x DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/1000/bus"
+BASH: declare -x DISPLAY=":0"
+BASH: declare -x HOME="/home/alemonto"
+BASH: declare -x HOSTTYPE="x86_64"
+BASH: declare -x LANG="C"
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.98d5psBHp5/bash.out	2026-01-13 11:55:34.046981056 +0100
++++ /tmp/tmp.98d5psBHp5/mini.out	2026-01-13 11:55:34.046981056 +0100
+@@ -1,5 +0,0 @@
+-declare -x DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/1000/bus"
+-declare -x DISPLAY=":0"
+-declare -x HOME="/home/alemonto"
+-declare -x HOSTTYPE="x86_64"
+-declare -x LANG="C"
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #16 (FEED): export valor vacío[0m
+Script:
+----------------------------------------
+export EMPTY=
+echo "[$EMPTY]"
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: []
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.OhJY06YFCi/bash.out	2026-01-13 11:55:34.066981054 +0100
++++ /tmp/tmp.OhJY06YFCi/mini.out	2026-01-13 11:55:34.066981054 +0100
+@@ -1 +0,0 @@
+-[]
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #17 (FEED): export con espacios en valor[0m
+Script:
+----------------------------------------
+export VAR="value with spaces"
+echo $VAR
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: value with spaces
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.uihCuevcu0/bash.out	2026-01-13 11:55:34.096981051 +0100
++++ /tmp/tmp.uihCuevcu0/mini.out	2026-01-13 11:55:34.096981051 +0100
+@@ -1 +0,0 @@
+-value with spaces
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #18: export identificador inválido (empieza con dígito)[0m
+CMD: export\ 1ABC=test
+BASH STATUS: 1
+MINISHELL STATUS: 1
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: bash: line 1: export: `1ABC=test': not a valid identifier
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: minishell: export: `1ABC=test': not a valid identifier
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.RwHMx0wSmH/bash.err	2026-01-13 11:55:34.126981048 +0100
++++ /tmp/tmp.RwHMx0wSmH/mini.err	2026-01-13 11:55:34.136981047 +0100
+@@ -1 +1 @@
+-bash: line 1: export: `1ABC=test': not a valid identifier
++minishell: export: `1ABC=test': not a valid identifier
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #19: export identificador inválido (guión)[0m
+CMD: export\ TEST-VAR=test
+BASH STATUS: 1
+MINISHELL STATUS: 1
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: bash: line 1: export: `TEST-VAR=test': not a valid identifier
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: minishell: export: `TEST-VAR=test': not a valid identifier
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.HDNO8p318V/bash.err	2026-01-13 11:55:34.146981047 +0100
++++ /tmp/tmp.HDNO8p318V/mini.err	2026-01-13 11:55:34.156981046 +0100
+@@ -1 +1 @@
+-bash: line 1: export: `TEST-VAR=test': not a valid identifier
++minishell: export: `TEST-VAR=test': not a valid identifier
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #20: export identificador inválido (símbolo)[0m
+CMD: export\ TEST@VAR=test
+BASH STATUS: 1
+MINISHELL STATUS: 1
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: bash: line 1: export: `TEST@VAR=test': not a valid identifier
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: minishell: export: `TEST@VAR=test': not a valid identifier
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.a1grjeFHlM/bash.err	2026-01-13 11:55:34.166981045 +0100
++++ /tmp/tmp.a1grjeFHlM/mini.err	2026-01-13 11:55:34.176981044 +0100
+@@ -1 +1 @@
+-bash: line 1: export: `TEST@VAR=test': not a valid identifier
++minishell: export: `TEST@VAR=test': not a valid identifier
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #21 (FEED): export múltiples variables[0m
+Script:
+----------------------------------------
+export A=1 B=2 C=3
+echo $A $B $C
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 1 2 3
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.UEIMFxIjdU/bash.out	2026-01-13 11:55:34.186981043 +0100
++++ /tmp/tmp.UEIMFxIjdU/mini.out	2026-01-13 11:55:34.186981043 +0100
+@@ -1 +0,0 @@
+-1 2 3
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #22 (FEED): export sobrescribir variable[0m
+Script:
+----------------------------------------
+export FOO=old
+export FOO=new
+echo $FOO
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: new
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.W05S8CVZjI/bash.out	2026-01-13 11:55:34.216981040 +0100
++++ /tmp/tmp.W05S8CVZjI/mini.out	2026-01-13 11:55:34.216981040 +0100
+@@ -1 +0,0 @@
+-new
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 4) UNSET - Edge Cases Completos ==[0m
+[1;33mTEST #23 (FEED): unset sin argumentos[0m
+Script:
+----------------------------------------
+unset
+echo $?
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 0
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.Fa02ST403O/bash.out	2026-01-13 11:55:34.246981038 +0100
++++ /tmp/tmp.Fa02ST403O/mini.out	2026-01-13 11:55:34.246981038 +0100
+@@ -1 +0,0 @@
+-0
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #24 (FEED): unset variable existente[0m
+Script:
+----------------------------------------
+export FOO=bar
+unset FOO
+echo $FOO
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.gsZUrIlkdy/bash.out	2026-01-13 11:55:34.276981035 +0100
++++ /tmp/tmp.gsZUrIlkdy/mini.out	2026-01-13 11:55:34.276981035 +0100
+@@ -1 +0,0 @@
+-
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #25 (FEED): unset variable inexistente[0m
+Script:
+----------------------------------------
+unset NONEXISTENT
+echo $?
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 0
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.hUTjBDj96d/bash.out	2026-01-13 11:55:34.296981033 +0100
++++ /tmp/tmp.hUTjBDj96d/mini.out	2026-01-13 11:55:34.296981033 +0100
+@@ -1 +0,0 @@
+-0
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #26 (FEED): unset múltiples variables[0m
+Script:
+----------------------------------------
+export A=1 B=2 C=3
+unset A B C
+echo $A $B $C
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.bTAsKkKjh9/bash.out	2026-01-13 11:55:34.326981030 +0100
++++ /tmp/tmp.bTAsKkKjh9/mini.out	2026-01-13 11:55:34.326981030 +0100
+@@ -1 +0,0 @@
+-
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #27: unset identificador inválido[0m
+CMD: unset\ 1ABC
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: minishell: unset: `1ABC': not a valid identidier
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.UctGol7hbH/bash.err	2026-01-13 11:55:34.346981029 +0100
++++ /tmp/tmp.UctGol7hbH/mini.err	2026-01-13 11:55:34.356981028 +0100
+@@ -0,0 +1 @@
++minishell: unset: `1ABC': not a valid identidier
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #28 (FEED): unset con identificadores mezclados[0m
+Script:
+----------------------------------------
+export FOO=1
+unset FOO 1ABC BAR
+echo $?
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 0
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.BJW83L6aGM/bash.out	2026-01-13 11:55:34.376981026 +0100
++++ /tmp/tmp.BJW83L6aGM/mini.out	2026-01-13 11:55:34.376981026 +0100
+@@ -1 +0,0 @@
+-0
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 5) EXIT - Edge Cases Completos ==[0m
+[1;33mTEST #29: exit sin argumentos (usa último status)[0m
+CMD: false\;\ exit
+BASH STATUS: 1
+MINISHELL STATUS: 127
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: bash: line 1: false;: command not found
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.HSoJCDLBlJ/bash.err	2026-01-13 11:55:34.396981024 +0100
++++ /tmp/tmp.HSoJCDLBlJ/mini.err	2026-01-13 11:55:34.436981021 +0100
+@@ -0,0 +1 @@
++bash: line 1: false;: command not found
+[1;31mSTATUS MISMATCH (bash=1, mini=127)[0m
+
+----------------------------------------
+
+[1;33mTEST #30: exit con código numérico[0m
+CMD: exit\ 42
+BASH STATUS: 42
+MINISHELL STATUS: 42
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: exit
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.EhbFMiD2hj/bash.err	2026-01-13 11:55:34.446981020 +0100
++++ /tmp/tmp.EhbFMiD2hj/mini.err	2026-01-13 11:55:34.456981019 +0100
+@@ -0,0 +1 @@
++exit
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #31: exit con argumento no numérico[0m
+CMD: exit\ hello
+BASH STATUS: 2
+MINISHELL STATUS: 2
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: bash: line 1: exit: hello: numeric argument required
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: exit
+MINISHELL: exit: hello: numeric argument required
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.ThdwTWjNiF/bash.err	2026-01-13 11:55:34.466981018 +0100
++++ /tmp/tmp.ThdwTWjNiF/mini.err	2026-01-13 11:55:34.466981018 +0100
+@@ -1 +1,2 @@
+-bash: line 1: exit: hello: numeric argument required
++exit
++exit: hello: numeric argument required
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #32: exit con múltiples argumentos[0m
+CMD: exit\ 1\ 2
+BASH STATUS: 1
+MINISHELL STATUS: 1
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: bash: line 1: exit: too many arguments
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: exit
+MINISHELL: exit: too many arguments
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.XhAu5eR2Bi/bash.err	2026-01-13 11:55:34.486981016 +0100
++++ /tmp/tmp.XhAu5eR2Bi/mini.err	2026-01-13 11:55:34.486981016 +0100
+@@ -1 +1,2 @@
+-bash: line 1: exit: too many arguments
++exit
++exit: too many arguments
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #33: exit con overflow[0m
+CMD: exit\ 999999999999999
+BASH STATUS: 255
+MINISHELL STATUS: 255
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: exit
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.FIprF8NB1N/bash.err	2026-01-13 11:55:34.496981015 +0100
++++ /tmp/tmp.FIprF8NB1N/mini.err	2026-01-13 11:55:34.506981014 +0100
+@@ -0,0 +1 @@
++exit
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #34: exit con código negativo[0m
+CMD: exit\ -42
+BASH STATUS: 214
+MINISHELL STATUS: 214
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: exit
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.UEv7AzoNT5/bash.err	2026-01-13 11:55:34.516981013 +0100
++++ /tmp/tmp.UEv7AzoNT5/mini.err	2026-01-13 11:55:34.526981012 +0100
+@@ -0,0 +1 @@
++exit
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #35: exit con código 256 (wrap)[0m
+CMD: exit\ 256
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: exit
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.U6E0d32s6T/bash.err	2026-01-13 11:55:34.536981012 +0100
++++ /tmp/tmp.U6E0d32s6T/mini.err	2026-01-13 11:55:34.546981011 +0100
+@@ -0,0 +1 @@
++exit
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 6) PIPES - Edge Cases Avanzados ==[0m
+[1;33mTEST #36: comando fallido seguido de exitoso en pipe[0m
+CMD: false\ \|\ echo\ still\ runs
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: still runs
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: still runs
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #37 (FEED): status de pipeline es último comando[0m
+Script:
+----------------------------------------
+true | false | true
+echo $?
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 0
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.obB86cJUZi/bash.out	2026-01-13 11:55:34.586981007 +0100
++++ /tmp/tmp.obB86cJUZi/mini.out	2026-01-13 11:55:34.586981007 +0100
+@@ -1 +0,0 @@
+-0
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #38: builtin en medio de pipeline[0m
+CMD: echo\ test\ \|\ export\ FOO=bar\ \|\ cat
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: bash: line 1: export: command not found
+[1;33mDiff en stderr:[0m
+--- /tmp/tmp.CpWsKbsR4E/bash.err	2026-01-13 11:55:34.616981004 +0100
++++ /tmp/tmp.CpWsKbsR4E/mini.err	2026-01-13 11:55:34.666981000 +0100
+@@ -0,0 +1 @@
++bash: line 1: export: command not found
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #39: cat sin entrada en pipe[0m
+CMD: echo\ test\ \|\ cat\ \|\ cat\ \|\ cat
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: test
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: test
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #40 (FEED): pipeline con 10 etapas[0m
+Script:
+----------------------------------------
+echo start | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: start
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.DiSXj4LQj7/bash.out	2026-01-13 11:55:34.706980996 +0100
++++ /tmp/tmp.DiSXj4LQj7/mini.out	2026-01-13 11:55:34.706980996 +0100
+@@ -1 +0,0 @@
+-start
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #41: pipeline con comando no encontrado[0m
+CMD: echo\ test\ \|\ NOEXIST\ \|\ cat
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: (empty)
+BASH STDERR:
+BASH: bash: line 1: NOEXIST: command not found
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: bash: line 1: NOEXIST: command not found
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 7) QUOTES Y EXPANSIONS - Edge Cases Avanzados ==[0m
+[1;33mTEST #42: dollar al final de palabra[0m
+CMD: echo\ test\$
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: test$
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: test$
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #43: expansión vacía[0m
+CMD: echo\ \"\$NONEXISTENT\"
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: 
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #44: expansión en single quotes (no debe expandir)[0m
+CMD: echo\ \'\$HOME\'
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: $HOME
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: $HOME
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #45: expansión en double quotes (debe expandir)[0m
+CMD: echo\ \"\$HOME\"
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: /home/alemonto
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: /home/alemonto
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #46: quotes consecutivas vacías[0m
+CMD: echo\ \"\"\'\'\"\"test
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: test
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: test
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #47: quotes mezcladas complejas[0m
+CMD: echo\ \'single\'\"double\"\'single\'\"\"
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: singledoublesingle
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: singledoublesingle
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #48: espacios en quotes[0m
+CMD: echo\ \'hello\ \ \ \ world\'
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: hello    world
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: hello    world
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #49: caracteres especiales en single quotes[0m
+CMD: echo\ \'\|\ \>\ \<\ \&\ \*\ \?\'
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: | > < & * ?
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: | > < & * ?
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #50: dollar seguido de caracteres especiales[0m
+CMD: echo\ \$@\ \$#\ \$\*
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 0
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: $@ $# $*
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.KKJRvxs7hN/bash.out	2026-01-13 11:55:34.986980971 +0100
++++ /tmp/tmp.KKJRvxs7hN/mini.out	2026-01-13 11:55:34.986980971 +0100
+@@ -1 +1 @@
+-0
++$@ $# $*
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #51 (FEED): expansión 0 múltiple[0m
+Script:
+----------------------------------------
+false
+echo $? $? $?
+----------------------------------------
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: 1 1 1
+BASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: (empty)
+MINISHELL STDERR:
+MINISHELL: (empty)
+[1;33mDiff en stdout:[0m
+--- /tmp/tmp.vj0AtGeaWn/bash.out	2026-01-13 11:55:35.006980969 +0100
++++ /tmp/tmp.vj0AtGeaWn/mini.out	2026-01-13 11:55:35.006980969 +0100
+@@ -1 +0,0 @@
+-1 1 1
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;36m== 8) ECHO - Edge Cases Específicos ==[0m
+[1;33mTEST #52: echo -n básico[0m
+CMD: echo\ -n\ hello
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: helloBASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: helloMINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #53: echo -n múltiple[0m
+CMD: echo\ -n\ -n\ -n\ test
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: testBASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: testMINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #54: echo -nnn (múltiples n)[0m
+CMD: echo\ -nnn\ hello
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: helloBASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: helloMINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
+[1;33mTEST #55: echo -n seguido de flag inválido[0m
+CMD: echo\ -n\ -x\ hello
+BASH STATUS: 0
+MINISHELL STATUS: 0
+BASH STDOUT:
+BASH: -x helloBASH STDERR:
+BASH: (empty)
+MINISHELL STDOUT:
+MINISHELL: -x helloMINISHELL STDERR:
+MINISHELL: (empty)
+[1;32mSTATUS OK[0m
+
+----------------------------------------
+
