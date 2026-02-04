@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelona.co  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 15:15:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/04 15:15:58 by jadelgad         ###   ########.fr       */
+/*   Updated: 2026/02/04 15:39:16 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,9 @@ static void	remove_env_var(t_data *data, int pos)
 	while (data->envp[size])
 		size++;
 	new_env = safe_malloc(size * sizeof(char *));
-	i = -1;
+	i = 0;
 	j = 0;
-	while (++i < size)
+	while (i < size)
 	{
 		if (i == pos)
 			free(data->envp[i]);
