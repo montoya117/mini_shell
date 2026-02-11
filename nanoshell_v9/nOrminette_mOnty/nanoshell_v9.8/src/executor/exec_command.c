@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/29 11:58:42 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/11 13:06:56 by alemonto         ###   ########.fr       */
+/*   Updated: 2026/02/11 13:41:53 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ void	exec_child(t_ast *node, t_data *data)
 	char	*path;
 	t_ast	*cmd;
 
+	data->pid = 1;
 	if (apply_all_redirections(node) == -1)
 		exit(1);
 	cmd = get_core_node(node);

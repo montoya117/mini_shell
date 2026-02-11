@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelona.co  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 15:11:32 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/04 15:11:46 by jadelgad         ###   ########.fr       */
+/*   Updated: 2026/02/11 13:26:15 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ typedef struct s_data
 {
 	int		running;
 	int		last_status;
+	int		pid;
 	char	*cmd;
 	char	*exit;
 	char	**envp;
@@ -210,6 +211,9 @@ typedef struct s_path_range
 }	t_path_range;
 
 // FUNCTIONS
+// _____________MAIN.c
+char		*get_input_line(t_data *data);
+int			handle_signal_interrupt(t_data *data, char *line);
 // ___________  UTILS#
 //____________ GNL.c
 char		*get_next_line(int fd);

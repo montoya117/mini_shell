@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   buitin_exit.c                                      :+:      :+:    :+:   */
+/*   builtin_exit.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/29 11:52:54 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/29 11:52:58 by jadelgad         ###   ########.fr       */
+/*   Updated: 2026/02/11 13:36:30 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,8 @@ static int	handle_no_args(t_data *data)
 
 int	builtin_exit(char **argv, t_data *data)
 {
-	ft_putendl_fd("exit", 2);
+	if (data->pid == 0)
+		ft_putendl_fd("exit", 2);
 	if (!argv || !argv[1])
 		return (handle_no_args(data));
 	if (!is_numeric_arg(argv[1]))
