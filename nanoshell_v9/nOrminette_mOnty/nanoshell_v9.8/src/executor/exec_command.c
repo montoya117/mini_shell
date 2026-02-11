@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/29 11:58:42 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/29 13:33:53 by jadelgad         ###   ########.fr       */
+/*   Updated: 2026/02/11 13:06:56 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,8 +59,7 @@ void	exec_child(t_ast *node, t_data *data)
 	if (!cmd || !cmd->argv || !cmd->argv[0])
 		exit(0);
 	env = prepare_env(cmd, data);
-	if (is_builtin(cmd->argv[0])
-		&& !builtin_should_run_in_parent(cmd->argv[0]))
+	if (is_builtin(cmd->argv[0]))
 		exec_child_builtin(cmd, data, env);
 	path = find_path((char *)cmd->argv[0], env);
 	if (!path)

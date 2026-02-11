@@ -1,7 +1,7 @@
 NAME    = minishell
 HEADER  = includes/nanoshell.h
 CC      = cc
-CFLAGS  = -Wall -Werror -Wextra -g -Iincludes -ILIBFT2/includes 
+CFLAGS  = -Wall -Werror -Wextra -g -Iincludes -ILIBFT2/includes -fsanitize=address 
 LDLIBS = -lreadline -lhistory -lncurses
 OBJ_DIR = obj
 SRC_DIR = src

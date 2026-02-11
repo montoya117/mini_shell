@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/29 13:20:59 by jadelgad         ###   ########.fr       */
+/*   Updated: 2026/02/11 13:14:12 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,15 +99,14 @@ static void	run_interactive(t_data *data)
 			g_signal_received = 0;
 			if (!line)
 			{
-				write(1, "\n", 1);
+				// write(1, "\n", 1);
 				continue ;
 			}
 		}
-		if (!line)
-		{
-			write(1, "exit\n", 5);
-			break ;
-		}
+		if (line == NULL)
+        {
+            break ;
+        }	
 		if (line[0] != '\0')
 		{
 			add_history(line);
@@ -125,6 +124,8 @@ int	main(int ac, char **av, char **envp)
 	(void)av;
 	ft_memset(&data, 0, sizeof(t_data));
 	data.envp = dup_env(envp);
+    rl_catch_signals = 0;
+	g_signal_received = 0;
 	read_history(".nanoshell_history");
 	if (isatty(STDIN_FILENO))
 		run_interactive(&data);
@@ -208,7 +209,9 @@ static void	run_interactive(t_data *data)
 			g_signal_received = 0;
 			// CRITICO: Si readline devolvió NULL por Ctrl+C, no debemos salir.
 			if (!line)
-			{
+			{    // Setup signals for Ctrl-C, Ctrl-
+    rl_catch_signals = 0;
+
 				write(1, "\n", 1); // Salto de línea estético
 				continue ; // Volvemos al inicio del while (nuevo prompt)
 			}
