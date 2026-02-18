@@ -53,8 +53,5 @@ void	setup_signals(void)
 	{
 		perror("sigaction SIGINT");
 	}
-	if (sigaction(SIGQUIT, &sa, NULL) == -1)
-	{
-		perror("sigaction SIGQUIT");
-	}
+	signal(SIGQUIT, SIG_IGN);
 }

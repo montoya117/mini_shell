@@ -1,27 +1,34 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main_helpers.c                                     :+:      :+:    :+:   */
+/*   ft_strlen.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/11 14:24:46 by alemonto         ###   ########.fr       */
+/*   Created: 2025/05/05 12:02:56 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/05/15 10:58:14 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "nanoshell.h"
+#include "libft.h"
 
-char	*get_input_line(t_data *data)
+size_t	ft_strlen(const char *s)
 {
-	char	*prompt;
-	char	*line;
+	int	i;
 
-	prompt = build_prompt(data);
-	if (prompt)
-		line = readline(prompt);
-	else
-		line = readline("minishell$ ");
-	free(prompt);
-	return (line);
+	i = 0;
+	while (s[i] != '\0')
+		i++;
+	return (i);
 }
+/*
+#include <stdio.h>
+
+int	main()
+{
+	char	*alpha;
+
+	alpha = "42BCN";
+	printf("%ld \n",ft_strlen(alpha));
+	return (0);
+}*/

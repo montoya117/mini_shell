@@ -1,27 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main_helpers.c                                     :+:      :+:    :+:   */
+/*   buffer_utils_helper.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/11 14:24:46 by alemonto         ###   ########.fr       */
+/*   Created: 2025/11/08 15:51:26 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/12 15:09:49 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "nanoshell.h"
 
-char	*get_input_line(t_data *data)
+void	buf_init(t_buf *b)
 {
-	char	*prompt;
-	char	*line;
+	b->data = NULL;
+	b->len = 0;
+	b->cap = 0;
+}
 
-	prompt = build_prompt(data);
-	if (prompt)
-		line = readline(prompt);
-	else
-		line = readline("minishell$ ");
-	free(prompt);
-	return (line);
+void	buf_free(t_buf *b)
+{
+	if (!b)
+		return ;
+	free(b->data);
+	b->data = NULL;
+	b->len = 0;
+	b->cap = 0;
 }

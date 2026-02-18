@@ -1,27 +1,36 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main_helpers.c                                     :+:      :+:    :+:   */
+/*   ft_strdup.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/11 14:24:46 by alemonto         ###   ########.fr       */
+/*   Created: 2025/05/08 14:06:09 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/05/16 11:37:34 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "nanoshell.h"
+#include "libft.h"
 
-char	*get_input_line(t_data *data)
+char	*ft_strdup(const char *s)
 {
-	char	*prompt;
-	char	*line;
+	char	*dst;
+	size_t	len;
 
-	prompt = build_prompt(data);
-	if (prompt)
-		line = readline(prompt);
-	else
-		line = readline("minishell$ ");
-	free(prompt);
-	return (line);
+	len = ft_strlen(s);
+	dst = ft_calloc(len + 1, sizeof(char));
+	if (!dst)
+		return (NULL);
+	ft_strlcpy(dst, s, len + 1);
+	return (dst);
 }
+/*
+#include <stdio.h>
+
+int	main()
+{
+	char	*str1 = "42BCn to the Moon!";
+
+	printf("%s", ft_strdup(str1));
+	return (0);
+}*/

@@ -1,27 +1,29 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main_helpers.c                                     :+:      :+:    :+:   */
+/*   ft_putchar_fd.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/11 14:24:46 by alemonto         ###   ########.fr       */
+/*   Created: 2025/05/13 10:02:01 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/05/21 11:08:52 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "nanoshell.h"
+#include "libft.h"
 
-char	*get_input_line(t_data *data)
+void	ft_putchar_fd(char c, int fd)
 {
-	char	*prompt;
-	char	*line;
-
-	prompt = build_prompt(data);
-	if (prompt)
-		line = readline(prompt);
-	else
-		line = readline("minishell$ ");
-	free(prompt);
-	return (line);
+	if (fd < 0)
+		return ;
+	write(fd, &c, 1);
 }
+/*
+int	main()
+{
+	char	letter;
+
+	letter = 'A';
+	ft_putchar_fd(letter, 1)
+	return (0);
+}*/

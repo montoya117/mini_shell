@@ -1,27 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main_helpers.c                                     :+:      :+:    :+:   */
+/*   ft_toupper.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/11 14:24:46 by alemonto         ###   ########.fr       */
+/*   Created: 2025/05/08 08:18:19 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/05/18 13:00:54 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "nanoshell.h"
+#include "libft.h"
+#include <stdio.h>
 
-char	*get_input_line(t_data *data)
+int	ft_toupper(int c)
 {
-	char	*prompt;
-	char	*line;
-
-	prompt = build_prompt(data);
-	if (prompt)
-		line = readline(prompt);
-	else
-		line = readline("minishell$ ");
-	free(prompt);
-	return (line);
+	if (c >= 97 && c <= 122)
+		return (c - 32);
+	return (c);
 }

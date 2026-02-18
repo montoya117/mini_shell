@@ -1,27 +1,43 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main_helpers.c                                     :+:      :+:    :+:   */
+/*   ft_memset.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/11 14:24:46 by alemonto         ###   ########.fr       */
+/*   Created: 2025/05/05 15:58:50 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/05/15 11:11:35 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "nanoshell.h"
+#include "libft.h"
 
-char	*get_input_line(t_data *data)
+void	*ft_memset(void *s, int c, size_t n)
 {
-	char	*prompt;
-	char	*line;
+	size_t			i;
+	unsigned char	*ptr;
 
-	prompt = build_prompt(data);
-	if (prompt)
-		line = readline(prompt);
-	else
-		line = readline("minishell$ ");
-	free(prompt);
-	return (line);
+	ptr = (unsigned char *)s;
+	i = 0;
+	if (n == 0)
+		return (s);
+	while (i < n)
+	{
+		ptr[i] = (unsigned char) c;
+		i++;
+	}
+	return (s);
 }
+/*
+#include <stdio.h>
+
+int	main()
+{
+	char phrase[] = "42BCN";
+	char c;
+
+	c = 'X';
+	ft_memset(phrase, c, 2);
+	printf("%s \n", phrase);
+	return (0);
+}*/

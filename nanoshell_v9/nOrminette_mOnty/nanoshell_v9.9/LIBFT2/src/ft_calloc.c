@@ -1,27 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main_helpers.c                                     :+:      :+:    :+:   */
+/*   ft_calloc.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/11 14:24:46 by alemonto         ###   ########.fr       */
+/*   Created: 2025/05/08 13:31:48 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/05/16 11:23:57 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "nanoshell.h"
+#include "libft.h"
 
-char	*get_input_line(t_data *data)
+void	*ft_calloc(size_t nmemb, size_t size)
 {
-	char	*prompt;
-	char	*line;
+	void	*ptr;
 
-	prompt = build_prompt(data);
-	if (prompt)
-		line = readline(prompt);
-	else
-		line = readline("minishell$ ");
-	free(prompt);
-	return (line);
+	ptr = malloc(nmemb * size);
+	if (!ptr)
+		return (NULL);
+	ft_bzero(ptr, nmemb * size);
+	return (ptr);
 }
+/*
+#include <stdio.h>
+
+int	main()
+{
+	char	*str;
+
+	str = (char *)ft_calloc(2, 4);
+	str[0] = 'a';
+	str[3] = 'b';
+	printf("%s", str);
+	return (0);	
+}*/

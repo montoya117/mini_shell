@@ -1,27 +1,32 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main_helpers.c                                     :+:      :+:    :+:   */
+/*   display_token_utils.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/03 14:58:53 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/11 14:24:46 by alemonto         ###   ########.fr       */
+/*   Created: 2025/11/13 13:02:42 by jadelgad          #+#    #+#             */
+/*   Updated: 2025/11/13 13:15:50 by jadelgad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "nanoshell.h"
 
-char	*get_input_line(t_data *data)
+void	print_escaped_loop(const char *s)
 {
-	char	*prompt;
-	char	*line;
+	unsigned char	c;
 
-	prompt = build_prompt(data);
-	if (prompt)
-		line = readline(prompt);
-	else
-		line = readline("minishell$ ");
-	free(prompt);
-	return (line);
+	while (*s)
+	{
+		c = (unsigned char)*s;
+		print_escaped_char(c);
+		s++;
+	}
+}
+
+void	print_null_token(size_t i)
+{
+	printf("token");
+	printf("%zu", i + 1);
+	printf(": (NULL)\n");
 }
