@@ -81,10 +81,10 @@ int	call_builtin(char **argv, t_data *data)
 void	builtin_error(const char *cmd, const char *arg, const char *message)
 {
 	write(2, "minishell: ", 11);
-	write(2, cmd, strlen(cmd));
+	write(2, cmd, ft_strlen(cmd));
 	write(2, ": `", 3);
-	write(2, arg, strlen(arg));
+	write(2, arg, ft_strlen(arg));
 	write(2, "': ", 3);
-	write(2, message, strlen(message));
+	write(2, message, ft_strlen(message));
 	write(2, "\n", 1);
 }

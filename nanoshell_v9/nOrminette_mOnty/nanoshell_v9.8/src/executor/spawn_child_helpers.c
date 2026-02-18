@@ -38,12 +38,12 @@ void	setup_child_io(t_data *data, int in_fd, int out_fd)
 	if (in_fd != -1)
 	{
 		if (dup2(in_fd, STDIN_FILENO) == -1)
-			_exit(127);
+			exit(127);
 	}
 	if (out_fd != -1)
 	{
 		if (dup2(out_fd, STDOUT_FILENO) == -1)
-			_exit(127);
+			exit(127);
 	}
 	if (in_fd != -1 && in_fd != STDIN_FILENO)
 		close(in_fd);
@@ -56,12 +56,12 @@ static void	exec_external_and_exit(t_ast *cmd)
 	char	*path;
 
 	if (!cmd || !cmd->argv || !cmd->argv[0])
-		_exit(127);
+		exit(127);
 	path = find_path((char *)cmd->argv[0], NULL);
 	if (!path)
 	{
 		exec_error("command not found", cmd->argv[0]);
-		_exit(127);
+		exit(127);
 	}
 	execve(path, cmd->argv, NULL);
 	if (errno == EACCES)
@@ -70,9 +70,9 @@ static void	exec_external_and_exit(t_ast *cmd)
 		exec_error("execve failed", cmd->argv[0]);
 	free(path);
 	if (errno == EACCES)
-		_exit(126);
+		exit(126);
 	else
-		_exit(127);
+		exit(127);
 }
 
 void	run_child_and_exit(t_ast *cmd, t_data *data)

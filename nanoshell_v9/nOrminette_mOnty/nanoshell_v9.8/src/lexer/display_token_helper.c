@@ -108,8 +108,8 @@ void	print_escaped_char(unsigned char c)
 		printf("\\\\");
 	else if (c == '\"')
 		printf("\\\"");
-	else if (isprint(c))
-		putchar(c);
+	else if (ft_isprint(c))
+		write(1, &c, 1);
 	else
 		printf("\\x%02x", c);
 }
