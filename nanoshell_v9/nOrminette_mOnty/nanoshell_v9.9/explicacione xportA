@@ -1,0 +1,458 @@
+jadelgad@cbr11s4 ~/minishell/nanoshell_v9/nOrminette_mOnty/nanoshell_v9.8
+ % bash
+jadelgad@cbr11s4:~/minishell/nanoshell_v9/nOrminette_mOnty/nanoshell_v9.8$ export A="   "
+jadelgad@cbr11s4:~/minishell/nanoshell_v9/nOrminette_mOnty/nanoshell_v9.8$ ls $A
+includes  LIBFT2  Makefile  minishell  obj  src
+jadelgad@cbr11s4:~/minishell/nanoshell_v9/nOrminette_mOnty/nanoshell_v9.8$ ls "$A"
+ls: cannot access '   ': No such file or directory
+jadelgad@cbr11s4:~/minishell/nanoshell_v9/nOrminette_mOnty/nanoshell_v9.8$ 
+
+
+
+Solución razonable sin reescribir todo:
+Mantener el flag was_quoted por token (ya lo tienes).
+Tras construir argv en el parser, hacer una pasada que:
+Para cada argumento no entrecomillado, aplica splitting por IFS (espacio, tab, newline) y sustituye el argumento por las piezas (o lo elimina si sólo hay separadores).
+Para cada argumento que viene de texto entrecomillado, lo deja tal cual.
+
+como podemos hacer esto??
+
+Vamos a implementarlo paso a paso, tocando lo mínimo posible y usando tu estilo actual.
+
+La idea:
+
+1. Guardar, junto a cada `argv[i]`, si ese argumento venía de un token entrecomillado (`was_quoted`).
+2. Después de construir `argv` en el parser, hacer word splitting solo sobre los argumentos con `was_quoted == 0`.
+
+Voy a proponerte cambios concretos en varios puntos.
+
+---
+
+## 1. Ampliar `t_ast` y `t_cmd_info` para guardar el flag de quoted
+
+En tu header `nanoshell.h` (no lo has pegado, pero lo tendrás), añade en la definición de `t_ast` un campo para los flags de quoted, paralelo a `argv`:
+
+```c
+// ejemplo aproximado, añade esta línea donde tengas t_ast definido
+typedef struct s_ast
+{
+	int				type;
+	struct s_ast	*left;
+	struct s_ast	*right;
+	char			**argv;
+	char			**assignments;
+	char			*file;
+	int				redirect_type;
+	int				redirect_fd;
+	struct s_ast_list *children;
+
+	// NUEVO:
+	int				*argv_quoted; // 1 si el argv[i] venía entrecomillado, 0 si no
+}	t_ast;
+```
+
+Y en `t_cmd_info` (ya lo usas en `parser_commands.c`), añade un puntero para este array:
+
+```c
+typedef struct s_cmd_info
+{
+	int			assign_count;
+	int			argc;
+	t_token		*words_start;
+	t_token		*last_word;
+	char		**assigns;
+	char		**argv;
+
+	// NUEVO:
+	int			*argv_quoted;
+}	t_cmd_info;
+```
+
+(Ajusta nombres / orden según tu header real.)
+
+---
+
+## 2. Inicializar `argv_quoted` al crear nodos de comando
+
+En `ast_init_helper.c`, al crear un `AST_COMMAND`:
+
+```c
+t_ast	*ast_new_command(char **tokens, char **assignments)
+{
+	t_ast	*node;
+
+	node = safe_malloc(sizeof(t_ast));
+	node->type = AST_COMMAND;
+	node->left = NULL;
+	node->right = NULL;
+	node->argv = tokens;
+	node->assignments = assignments;
+	node->file = NULL;
+	node->redirect_type = 0;
+	node->redirect_fd = -1;
+	node->children = NULL;
+	// NUEVO:
+	node->argv_quoted = NULL;
+	return (node);
+}
+```
+
+En los otros constructores (`ast_new_and`, `ast_new_or`, `ast_new_subshell`, `ast_new_pipe`, `ast_new_redirect`), inicializa también `argv_quoted = NULL;`, igual que haces con `argv`.
+
+Por ejemplo, en `ast_init.c`:
+
+```c
+t_ast	*ast_new_and(t_ast *left, t_ast *right)
+{
+	t_ast	*node;
+
+	node = safe_malloc(sizeof(t_ast));
+	node->type = AST_AND;
+	node->left = left;
+	node->right = right;
+	node->argv = NULL;
+	node->assignments = NULL;
+	node->file = NULL;
+	node->redirect_type = 0;
+	node->redirect_fd = -1;
+	node->children = NULL;
+	// NUEVO:
+	node->argv_quoted = NULL;
+	return (node);
+}
+```
+
+Y así en `ast_new_or`, `ast_new_subshell`, `ast_new_pipe`, `ast_new_redirect`.
+
+---
+
+## 3. Liberar `argv_quoted` en `ast_free`
+
+En `ast_error.c`, dentro de `ast_free`:
+
+```c
+void	ast_free(t_ast *node)
+{
+	if (!node)
+		return ;
+	ast_free(node->left);
+	ast_free(node->right);
+	ast_list_free(node->children);
+	free_argv(node->argv);
+	free_assignments(node->assignments);
+	free(node->file);
+	// NUEVO:
+	free(node->argv_quoted);
+	free(node);
+}
+```
+
+---
+
+## 4. Guardar `was_quoted` al construir `argv` en `parser_commands.c`
+
+Ya tienes `fill_arrays` que rellena `assigns` y `argv`. Vamos a modificarla para que también cree `argv_quoted`.
+
+En `parser_commands.c`, localiza `fill_arrays` y cámbiala así:
+
+```c
+static int	fill_arrays(t_cmd_info *info, t_token *tok)
+{
+	int	i;
+
+	info->assigns = safe_malloc((info->assign_count + 1) * sizeof(char *));
+	info->argv = safe_malloc((info->argc + 1) * sizeof(char *));
+	// NUEVO:
+	info->argv_quoted = safe_malloc((info->argc + 1) * sizeof(int));
+	if (!info->assigns || !info->argv || !info->argv_quoted)
+		return (0);
+	i = 0;
+	while (i < info->assign_count)
+	{
+		info->assigns[i++] = ft_strdup(tok->text);
+		tok = tok->next;
+	}
+	info->assigns[i] = NULL;
+	i = 0;
+	tok = info->words_start;
+	while (tok && (tok->type == TOKEN_WORD || tok->type == TOKEN_EXPANSION))
+	{
+		if (!tok->is_io_number)
+		{
+			info->argv[i] = ft_strdup(tok->text);
+			// NUEVO: guardamos si este token venía entrecomillado
+			info->argv_quoted[i] = tok->was_quoted;
+			i++;
+		}
+		tok = tok->next;
+	}
+	info->argv[i] = NULL;
+	// por seguridad, podemos marcar final también en quoted
+	info->argv_quoted[i] = 0;
+	return (1);
+}
+```
+
+Y en `attach_to_base`, además de enganchar `argv` y `assignments`, engancha `argv_quoted`:
+
+```c
+static void	attach_to_base(t_ast *cmd, t_cmd_info *i)
+{
+	t_ast	*base;
+
+	base = cmd;
+	while (base && base->type == AST_REDIRECT)
+		base = base->left;
+	if (base && base->type == AST_COMMAND)
+	{
+		base->argv = i->argv;
+		base->assignments = i->assigns;
+		// NUEVO:
+		base->argv_quoted = i->argv_quoted;
+	}
+}
+```
+
+---
+
+## 5. Implementar `split_by_ifs` (espacio, tab, newline) y `apply_word_splitting`
+
+Crea un nuevo fichero, por ejemplo `word_split.c`, y añádelo a tu Makefile.
+
+```c
+```c name=src/word_split.c
+#include "nanoshell.h"
+
+/*
+ * Divide s en "palabras" separadas por IFS básico: ' ', '\t', '\n'.
+ * No genera campos vacíos, secuencias de separadores se ignoran.
+ * Devuelve array NULL-terminado. Cada pieza está en heap (ft_strndup).
+ */
+static int	is_ifs(char c)
+{
+	return (c == ' ' || c == '\t' || c == '\n');
+}
+
+char	**split_by_ifs(const char *s)
+{
+	char	**out;
+	size_t	cap;
+	size_t	count;
+	size_t	i;
+	size_t	start;
+
+	if (!s)
+		return (NULL);
+	cap = 4;
+	count = 0;
+	out = safe_malloc(sizeof(char *) * cap);
+	i = 0;
+	while (s[i])
+	{
+		while (s[i] && is_ifs(s[i]))
+			i++;
+		if (!s[i])
+			break;
+		start = i;
+		while (s[i] && !is_ifs(s[i]))
+			i++;
+		if (count + 1 >= cap)
+		{
+			char **tmp;
+
+			cap *= 2;
+			tmp = realloc(out, sizeof(char *) * cap);
+			if (!tmp)
+			{
+				perror("realloc");
+				// en tu proyecto normalmente usarías safe_malloc/safe_realloc;
+				// si quieres, puedes cambiar esto por una versión que aborte.
+				exit(EXIT_FAILURE);
+			}
+			out = tmp;
+		}
+		out[count++] = ft_strndup(s + start, i - start);
+	}
+	out[count] = NULL;
+	return (out);
+}
+
+/*
+ * Aplica word splitting sobre base->argv, usando base->argv_quoted
+ * para decidir qué argumentos se pueden splittear.
+ */
+void	apply_word_splitting(t_ast *cmd)
+{
+	t_ast	*base;
+	int		argc;
+	int		i;
+	int		j;
+	char	**new_argv;
+	int		*new_quoted;
+	int		new_cap;
+
+	if (!cmd)
+		return ;
+	/* bajar hasta el nodo de comando real (saltando redirecciones) */
+	base = cmd;
+	while (base && base->type == AST_REDIRECT)
+		base = base->left;
+	if (!base || base->type != AST_COMMAND || !base->argv)
+		return ;
+	argc = ast_count_args(base->argv);
+	if (argc == 0)
+		return ;
+	new_cap = argc + 4;
+	new_argv = safe_malloc(sizeof(char *) * new_cap);
+	new_quoted = safe_malloc(sizeof(int) * new_cap);
+	j = 0;
+	i = 0;
+	while (i < argc)
+	{
+		char	*arg = base->argv[i];
+		int		quoted = 0;
+
+		if (base->argv_quoted)
+			quoted = base->argv_quoted[i];
+		if (!quoted)
+		{
+			char	**pieces;
+			int		k;
+
+			pieces = split_by_ifs(arg);
+			k = 0;
+			while (pieces && pieces[k])
+			{
+				if (j + 1 >= new_cap)
+				{
+					char **tmp_argv;
+					int  *tmp_q;
+
+					new_cap *= 2;
+					tmp_argv = realloc(new_argv, sizeof(char *) * new_cap);
+					tmp_q = realloc(new_quoted, sizeof(int) * new_cap);
+					if (!tmp_argv || !tmp_q)
+					{
+						perror("realloc");
+						exit(EXIT_FAILURE);
+					}
+					new_argv = tmp_argv;
+					new_quoted = tmp_q;
+				}
+				new_argv[j] = pieces[k];
+				new_quoted[j] = 0; /* resultado de split, no venía entrecomillado */
+				j++;
+				k++;
+			}
+			free(pieces);
+			free(arg);
+		}
+		else
+		{
+			if (j + 1 >= new_cap)
+			{
+				char **tmp_argv;
+				int  *tmp_q;
+
+				new_cap *= 2;
+				tmp_argv = realloc(new_argv, sizeof(char *) * new_cap);
+				tmp_q = realloc(new_quoted, sizeof(int) * new_cap);
+				if (!tmp_argv || !tmp_q)
+				{
+					perror("realloc");
+					exit(EXIT_FAILURE);
+				}
+				new_argv = tmp_argv;
+				new_quoted = tmp_q;
+			}
+			new_argv[j] = arg;
+			new_quoted[j] = quoted;
+			j++;
+		}
+		i++;
+	}
+	new_argv[j] = NULL;
+	/* liberar arrays antiguos, pero no las cadenas (ya las hemos movido o freeado) */
+	free(base->argv);
+	free(base->argv_quoted);
+	base->argv = new_argv;
+	base->argv_quoted = new_quoted;
+}
+```
+
+Y declara estas funciones en `nanoshell.h`:
+
+```c
+char	**split_by_ifs(const char *s);
+void	apply_word_splitting(t_ast *cmd);
+```
+
+---
+
+## 6. Llamar a `apply_word_splitting` en `parser_commands`
+
+Al final de `parser_commands` (en `parser_commands.c`), justo después de `attach_to_base`:
+
+```c
+t_ast	*parser_commands(t_token **ptokens, t_parser_context *ctx)
+{
+	t_cmd_info	info;
+	t_ast		*cmd;
+	t_token		*tok;
+	t_token		*suffix_tok;
+
+	tok = *ptokens;
+	ft_memset(&info, 0, sizeof(t_cmd_info));
+	cmd = ast_new_command(NULL, NULL);
+	if (!cmd || !handle_redirs(ctx, &cmd, &tok, &info))
+		return (ast_free(cmd), NULL);
+	count_elements(&info, tok);
+	if (info.assign_count == 0 && info.argc == 0 && cmd->type != AST_REDIRECT)
+		return (set_parser_error(ctx, "empty cmd", tok), ast_free(cmd), NULL);
+	suffix_tok = info.words_start;
+	while (suffix_tok && (suffix_tok->type == TOKEN_WORD
+			|| suffix_tok->type == TOKEN_EXPANSION))
+		suffix_tok = suffix_tok->next;
+	if (!handle_redirs(ctx, &cmd, &suffix_tok, &info))
+		return (ast_free(cmd), NULL);
+	if (!fill_arrays(&info, tok))
+		return (ast_free(cmd), NULL);
+	attach_to_base(cmd, &info);
+
+	// NUEVO: aplicar word splitting sobre argv según quoted
+	apply_word_splitting(cmd);
+
+	*ptokens = suffix_tok;
+	return (cmd);
+}
+```
+
+---
+
+## 7. Qué deberías obtener después de estos cambios
+
+Caso de prueba clave:
+
+```sh
+export A="   "
+
+# En tu minishell:
+ls $A      # debería comportarse como "ls" (listar cwd, sin error)
+ls "$A"    # debería dar: ls: cannot access '   ': No such file or directory
+```
+
+Otros tests útiles:
+
+```sh
+export B="foo   bar"
+
+echo $B       # -> foo bar          (dos palabras, con splitting)
+echo "$B"     # -> foo   bar        (texto literal, sin split)
+
+touch a b c
+export P="a b"
+ls $P         # -> lista ficheros a y b (si existen)
+ls "$P"       # -> busca un fichero llamado "a b"
+```
+
+Si al compilar te da algún error de tipos o cabeceras, pásame el `nanoshell.h` y ajustamos las firmas exactamente a tu código, pero la idea está lista: conservas `was_quoted` del tokenizer, lo arrastras hasta el AST, y allí haces word splitting sólo donde procede.
