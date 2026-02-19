@@ -51,8 +51,8 @@ char	*get_redir_file(int type, char *text)
 
 int	count_pieces(const char *s, int was_quoted)
 {
-	int count;
-	int in_word;
+	int	count;
+	int	in_word;
 
 	if (was_quoted)
 		return (1);

@@ -64,7 +64,7 @@ void	ast_parser_error(const char *message, t_token *token)
 	const char	*tokstr;
 
 	if (g_signal_received == SIGINT)
-        return ;
+		return ;
 	(void)message;
 	prefix = "minishell: ";
 	msg = "syntax error near unexpected token `";

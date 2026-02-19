@@ -56,8 +56,6 @@ char	**split_by_ifs(const char *s)
 
 	if (!s)
 		return (NULL);
-	// 1) contar piezas igual que count_pieces, pero sin was_quoted
-	//    (en este contexto solo la llamamos con was_quoted == 0)
 	count = 0;
 	i = 0;
 	while (s[i])
@@ -65,12 +63,11 @@ char	**split_by_ifs(const char *s)
 		while (s[i] && is_ifs(s[i]))
 			i++;
 		if (!s[i])
-			break;
+			break ;
 		count++;
 		while (s[i] && !is_ifs(s[i]))
 			i++;
 	}
-	// si count == 0, devolver array vacío
 	res = safe_malloc((count + 1) * sizeof(char *));
 	i = 0;
 	len = 0;
@@ -81,7 +78,7 @@ char	**split_by_ifs(const char *s)
 		while (s[i] && is_ifs(s[i]))
 			i++;
 		if (!s[i])
-			break;
+			break ;
 		start = i;
 		while (s[i] && !is_ifs(s[i]))
 			i++;

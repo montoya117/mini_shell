@@ -52,14 +52,15 @@ static void	count_elements(t_cmd_info *info, t_token *tok)
 		tmp = tmp->next;
 	}
 	info->words_start = tmp;
-	while (tmp && (tmp->type == TOKEN_WORD || tmp->type == TOKEN_EXPANSION || is_redir_token(tmp->type)))
+	while (tmp && (tmp->type == TOKEN_WORD
+			|| tmp->type == TOKEN_EXPANSION || is_redir_token(tmp->type)))
 	{
 		if (is_redir_token(tmp->type))
 		{
-			tmp = tmp->next;      // saltar operador
+			tmp = tmp->next;
 			if (tmp)
-				tmp = tmp->next;  // saltar filename
-			continue;
+				tmp = tmp->next;
+			continue ;
 		}
 		info->argc += count_pieces(tmp->text, tmp->was_quoted);
 		if (tmp->type == TOKEN_WORD)
@@ -89,29 +90,27 @@ static int	fill_arrays(t_cmd_info *info, t_token *tok)
 	info->assigns[i] = NULL;
 	i = 0;
 	tok = info->words_start;
-	while (tok && (tok->type == TOKEN_WORD || tok->type == TOKEN_EXPANSION || is_redir_token(tok->type)))
+	while (tok && (tok->type == TOKEN_WORD
+			|| tok->type == TOKEN_EXPANSION || is_redir_token(tok->type)))
 	{
 		if (is_redir_token(tok->type))
 		{
-			tok = tok->next;      // saltar operador
+			tok = tok->next;
 			if (tok)
-				tok = tok->next;  // saltar filename
-			continue;
+				tok = tok->next;
+			continue ;
 		}
 		if (!tok->is_io_number)
 		{
-			// Aquí aplicar realmente el splitting
 			if (tok->was_quoted)
 			{
-				// sin splitting
 				info->argv[i] = ft_strdup(tok->text);
 				info->argv_quoted[i] = 1;
 				i++;
 			}
 			else
 			{
-				// splitting por IFS
-				pieces = split_by_ifs(tok->text); // la implementas tú
+				pieces = split_by_ifs(tok->text);
 				j = 0;
 				while (pieces && pieces[j])
 				{
@@ -120,7 +119,7 @@ static int	fill_arrays(t_cmd_info *info, t_token *tok)
 					i++;
 					j++;
 				}
-				free_split(pieces); // función que libere el array de split
+				free_split(pieces);
 			}
 		}
 		tok = tok->next;
@@ -146,7 +145,6 @@ static void	attach_to_base(t_ast *cmd, t_cmd_info *i)
 	}
 }
 
-
 t_ast	*parser_commands(t_token **ptokens, t_parser_context *ctx)
 {
 	t_cmd_info	info;
@@ -172,7 +170,7 @@ t_ast	*parser_commands(t_token **ptokens, t_parser_context *ctx)
 		{
 			if (!handle_redirs(ctx, &cmd, &scan, &info))
 				return (ast_free(cmd), NULL);
-			continue;
+			continue ;
 		}
 		scan = scan->next;
 	}
@@ -183,56 +181,3 @@ t_ast	*parser_commands(t_token **ptokens, t_parser_context *ctx)
 	*ptokens = suffix_tok;
 	return (cmd);
 }
-
-/*
-t_ast	*parser_commands(t_token **ptokens, t_parser_context *ctx)
-{
-	t_cmd_info	info;
-	t_ast		*cmd;
-	t_token		*tok;
-	t_token		*scan;
-	t_token		*suffix_tok;
-
-	tok = *ptokens;
-	ft_memset(&info, 0, sizeof(t_cmd_info));
-	cmd = ast_new_command(NULL, NULL);
-	if (!cmd || !handle_redirs(ctx, &cmd, &tok, &info))
-		return (ast_free(cmd), NULL);
-
-	// 1) Contar assignments + args (con splitting) desde tok /
-	count_elements(&info, tok);
-
-	// 2) Comprobar comando vacío (sin args ni redirs previas) /
-	if (info.assign_count == 0 && info.argc == 0 && cmd->type != AST_REDIRECT)
-		return (set_parser_error(ctx, "empty cmd", tok), ast_free(cmd), NULL);
-
-	// 3) Recorrer desde words_start y procesar redirecciones en medio /
-	scan = info.words_start;
-	while (scan && (scan->type == TOKEN_WORD
-			|| scan->type == TOKEN_EXPANSION
-			|| is_redir_token(scan->type)))
-	{
-		if (is_redir_token(scan->type))
-		{
-			if (!handle_redirs(ctx, &cmd, &scan, &info))
-				return (ast_free(cmd), NULL);
-			// handle_redirs ya avanza scan más allá del filename /
-			continue;
-		}
-		scan = scan->next;
-	}
-	suffix_tok = scan;
-
-	// 4) Rellenar arrays (assigns + argv) con splitting e ignorando redirs /
-	if (!fill_arrays(&info, tok))
-		return (ast_free(cmd), NULL);
-
-	// 5) Colgar argv/assigns en el comando base (dentro de posibles AST_REDIRECT) /
-	attach_to_base(cmd, &info);
-
-	// 6) Avanzar ptokens hasta lo que quede tras el comando+redirs /
-	*ptokens = suffix_tok;
-	return (cmd);
-}
-
-*/

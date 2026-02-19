@@ -45,10 +45,10 @@ static void	execute_logic(char *line, t_data *data)
 	head = tokens;
 	tree = parser(&tokens);
 	if (!tree && g_signal_received == SIGINT)
-    {
-        data->last_status = 130;
-        g_signal_received = 0;
-    }
+	{
+		data->last_status = 130;
+		g_signal_received = 0;
+	}
 	else if (tree)
 	{
 		data->last_status = exec_ast(tree, data);

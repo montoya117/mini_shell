@@ -167,23 +167,23 @@ typedef struct s_ast_list
 typedef struct s_ast
 {
 	t_ast_type		type;
-	struct s_ast	*left; // for  && ||  and redirections
-	struct s_ast	*right; // for && || and redirections
-	char			**argv; // for command + normal args
-	char			**assignments;// NULL‑terminated array of "NAME=VALUE"
-	char			*file; // for redirections
-	int				redirect_type; // for rediretions
-	int				redirect_fd; // for rediretions 2> & 2>>
+	struct s_ast	*left;
+	struct s_ast	*right;
+	char			**argv;
+	char			**assignments;
+	char			*file;
+	int				redirect_type;
+	int				redirect_fd;
 	int				*argv_quoted;
-	t_ast_list		*children; // for pipe chain
+	t_ast_list		*children;
 }	t_ast;
 
 // PARSER_STRUCTS
 typedef struct s_parser_context
 {
-	int			error_status; // 0 if is OK, 1 if error is detected
-	const char	*error_message; // message
-	t_token		*error_token; // points to the error token
+	int			error_status;
+	const char	*error_message;
+	t_token		*error_token;
 }	t_parser_context;
 
 typedef struct s_cmd_info
@@ -195,7 +195,6 @@ typedef struct s_cmd_info
 	char	**assigns;
 	t_token	*words_start;
 	t_token	*last_word;
-	
 }	t_cmd_info;
 
 //		PIPES STRUCT

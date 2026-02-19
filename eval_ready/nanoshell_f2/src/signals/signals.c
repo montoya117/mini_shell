@@ -35,15 +35,14 @@ static void	signal_handler(int signum)
  usuario tenga que pulsar ninguna tecla extra."
 */
 
-void signal_handler_heredoc(int signum)
+void	signal_handler_heredoc(int signum)
 {
-    if (signum == SIGINT)
-    {
-        g_signal_received = SIGINT;
-        // Simulamos un Enter en el STDIN para desbloquear readline
-        ioctl(STDIN_FILENO, TIOCSTI, "\n");
-        write(1, "\n", 1);
-    }
+	if (signum == SIGINT)
+	{
+		g_signal_received = SIGINT;
+		ioctl(STDIN_FILENO, TIOCSTI, "\n");
+		write(1, "\n", 1);
+	}
 }
 
 int	handle_signal_interrupt(t_data *data, char *line)

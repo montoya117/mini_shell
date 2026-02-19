@@ -77,8 +77,8 @@ static int	is_delim(char *line, char *delimiter)
 static int	write_heredoc_loop(int fd, char *delimiter)
 {
 	char	*line;
-	int     status;
-	
+	int		status;
+
 	status = 0;
 	signal(SIGINT, signal_handler_heredoc);
 	while (1)
