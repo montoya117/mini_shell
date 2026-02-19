@@ -1,7 +1,7 @@
 NAME    = minishell
 HEADER  = includes/nanoshell.h
 CC      = cc
-CFLAGS  = -Wall -Werror -Wextra -g -Iincludes -ILIBFT2/includes -fsanitize=address 
+CFLAGS  = -Wall -Werror -Wextra -g -Iincludes -ILIBFT2/includes# -fsanitize=address 
 LDLIBS = -lreadline -lhistory -lncurses
 OBJ_DIR = obj
 SRC_DIR = src
@@ -17,7 +17,7 @@ libft:
 	@echo "$(BLUE)Compiling libft...$(RESET)"
 	@make -C $(LIBFT_DIR)
 
-$(NAME): $(OBJS) $(LIBFT_A) Makefile includes/nanoshell.h
+$(NAME): $(OBJS) $(LIBFT_A)
 	@echo "$(BLUE)Linking $(NAME)...$(RESET)"
 	@$(CC) $(CFLAGS) $(OBJS) -L$(LIBFT_DIR) -lft $(LDLIBS) -o $(NAME)
 	@echo "$(GREEN)✓ $(NAME) compiled successfully!$(RESET)"

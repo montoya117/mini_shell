@@ -1,0 +1,58 @@
+NAME    = minishell
+HEADER  = includes/nanoshell.h
+CC      = cc
+CFLAGS  = -Wall -Werror -Wextra -g -Iincludes -ILIBFT2/includes 
+LDLIBS = -lreadline -lhistory -lncurses
+OBJ_DIR = obj
+SRC_DIR = src
+LIBFT_DIR = LIBFT2
+LIBFT_A = $(LIBFT_DIR)/libft.a
+
+SRCS	= buffer_utils.c display_token_utils.c process_chars_ctx.c token_operator.c \
+buffer_utils_helper.c expand.c process_chars_ctx_handlers.c  token_quotes.c display_token.c \
+expand_handlers.c tokenizer.c token_utils.c display_token_helper.c handle_brace_utils.c \
+tokenizer_helper.c token_words.c ast_error.c ast_init_helper.c fill_arrays.c parser.c \
+parser_ifs.c ast_error_helper.c ast_token_utils.c  parser_all.c parser_commands.c ast_init.c \
+ast_utils.c parser_all_helpers.c parser_commands_helpers.c exec_ast.c exec_pipeline.c \
+exec_subshell.c find_path_helper.c run_multi_pipes.c exec_command.c exec_redir.c exec_utils.c \
+pipe_helpers.c run_pipeline.c exec_command_helpers.c exec_redir_helper.c find_path.c \
+pipe_utils.c spawn_child_helpers.c builtin_cd.c	builtins.c export.c unset.c builtin_exit.c \
+echo_pwd_env.c helper_cd.c utils_helper_cd.c assignments.c env_utils.c env_utils_helper.c \
+get_next_line.c prompt_build.c prompt_cwd.c promt_user.c promt_user_helper.c signals.c \
+basic_utils.c basic_utils_helper.c main_helpers.c 
+
+OBJS    = $(SRCS:%.c=$(OBJ_DIR)/%.o)
+
+all: libft $(NAME)
+
+libft:
+	@echo "$(BLUE)Compiling libft...$(RESET)"
+	@make -C $(LIBFT_DIR)
+
+$(NAME): $(OBJS) $(LIBFT_A) Makefile includes/nanoshell.h
+	@echo "$(BLUE)Linking $(NAME)...$(RESET)"
+	@$(CC) $(CFLAGS) $(OBJS) -L$(LIBFT_DIR) -lft $(LDLIBS) -o $(NAME)
+	@echo "$(GREEN)✓ $(NAME) compiled successfully!$(RESET)"
+	
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADER)
+	@mkdir -p $(dir $@)
+	@echo "$(YELLOW)Compiling $<...$(RESET)"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	@echo "$(RED)Cleaning object files...$(RESET)"
+	@rm -rf $(OBJ_DIR)
+	@make -C $(LIBFT_DIR) clean
+
+fclean: clean
+	@echo "$(RED)Removing $(NAME)...$(RESET)"
+	@rm -f $(NAME)
+	@make -C $(LIBFT_DIR) fclean
+	@echo "$(GREEN)✓ Full clean completed!$(RESET)"
+
+re: fclean all
+
+.PHONY: all clean fclean re libft
+
+# BUILTINS_SRCS	:= cd.c echo.c env.c exit.c export.c pwd.c unset.c
+# BUILTINS_SRCS	:= $(addprefix srcs/builtins/,$(BUILTINS_SRCS))
