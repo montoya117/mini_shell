@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelona.co  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 15:11:32 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/11 13:26:15 by alemonto         ###   ########.fr       */
+/*   Updated: 2026/02/19 16:00:16 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -329,6 +329,10 @@ t_ast		*parser_pipe(t_token **ptokens, t_parser_context *ctx);
 t_ast		*parser_subshell(t_token **ptokens, t_parser_context *ctx);
 t_ast		*parser_command_or_subshell(t_token **ptokens,
 				t_parser_context *ctx);
+
+//________FILL_ARRAYS.C
+int			fill_arrays(t_cmd_info *info, t_token *tok);
+
 //________PARSER_ALL_HELPERS.C
 t_ast		*create_logic_node(t_token_type type, t_ast *left, t_ast *right);
 t_ast		*parse_pipe_sequence(t_ast *left, t_token **tok,
@@ -366,8 +370,7 @@ int			is_assignment_word(const char *s);
 void		ast_free(t_ast *node);
 void		ast_list_free(t_ast_list *list);
 void		ast_parser_error(const char *message, t_token *token);
-// TO MOVE
-int			ft_strlen_const(const char *str); // TODO HEY HEY !!
+int			ft_strlen_const(const char *str);
 
 //__________ AST_ERROR_HELPER.C
 void		free_argv(char **argv);

@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelona.co  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 15:22:05 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/04 15:22:08 by jadelgad         ###   ########.fr       */
+/*   Updated: 2026/02/19 16:15:48 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ static void	count_elements(t_cmd_info *info, t_token *tok)
 	}
 }
 
-/* Reserva memoria y rellena argv/assignments */
+/* Reserva memoria y rellena argv/assignments 
 static int	fill_arrays(t_cmd_info *info, t_token *tok)
 {
 	int		i;
@@ -128,7 +128,7 @@ static int	fill_arrays(t_cmd_info *info, t_token *tok)
 	info->argv_quoted[i] = 0;
 	return (1);
 }
-
+*/
 /* Pega los arrays al comando base */
 static void	attach_to_base(t_ast *cmd, t_cmd_info *i)
 {
@@ -145,13 +145,30 @@ static void	attach_to_base(t_ast *cmd, t_cmd_info *i)
 	}
 }
 
+static int	parse_mid_redirs(t_parser_context *ctx, t_ast **cmd,
+	t_token **scan, t_cmd_info *info)
+{
+	while (*scan && ((*scan)->type == TOKEN_WORD
+			|| (*scan)->type == TOKEN_EXPANSION
+			|| is_redir_token((*scan)->type)))
+	{
+		if (is_redir_token((*scan)->type))
+		{
+			if (!handle_redirs(ctx, cmd, scan, info))
+				return (0);
+			continue ;
+		}
+		*scan = (*scan)->next;
+	}
+	return (1);
+}
+
 t_ast	*parser_commands(t_token **ptokens, t_parser_context *ctx)
 {
 	t_cmd_info	info;
 	t_ast		*cmd;
 	t_token		*tok;
 	t_token		*scan;
-	t_token		*suffix_tok;
 
 	tok = *ptokens;
 	ft_memset(&info, 0, sizeof(t_cmd_info));
@@ -162,22 +179,11 @@ t_ast	*parser_commands(t_token **ptokens, t_parser_context *ctx)
 	if (info.assign_count == 0 && info.argc == 0 && cmd->type != AST_REDIRECT)
 		return (set_parser_error(ctx, "empty cmd", tok), ast_free(cmd), NULL);
 	scan = info.words_start;
-	while (scan && (scan->type == TOKEN_WORD
-			|| scan->type == TOKEN_EXPANSION
-			|| is_redir_token(scan->type)))
-	{
-		if (is_redir_token(scan->type))
-		{
-			if (!handle_redirs(ctx, &cmd, &scan, &info))
-				return (ast_free(cmd), NULL);
-			continue ;
-		}
-		scan = scan->next;
-	}
-	suffix_tok = scan;
+	if (!parse_mid_redirs(ctx, &cmd, &scan, &info))
+		return (ast_free(cmd), NULL);
 	if (!fill_arrays(&info, tok))
 		return (ast_free(cmd), NULL);
 	attach_to_base(cmd, &info);
-	*ptokens = suffix_tok;
+	*ptokens = scan;
 	return (cmd);
 }

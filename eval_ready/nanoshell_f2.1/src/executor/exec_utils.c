@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelona.co  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 15:18:42 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/04 15:18:44 by jadelgad         ###   ########.fr       */
+/*   Updated: 2026/02/19 15:34:12 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,11 +69,6 @@ static int	is_delim(char *line, char *delimiter)
 	return (0);
 }
 
-/*
-** Returns 0 on success (EOF or delimiter found)
-** Returns -1 if interrupted by SIGINT
-*/
-
 static int	write_heredoc_loop(int fd, char *delimiter)
 {
 	char	*line;
@@ -84,24 +79,19 @@ static int	write_heredoc_loop(int fd, char *delimiter)
 	while (1)
 	{
 		line = readline("> ");
-		if (g_signal_received == SIGINT)
+		if (g_signal_received == SIGINT || !line || is_delim(line, delimiter))
 		{
-			if (line)
-				free(line);
-			status = -1;
-			break ;
-		}
-		if (!line)
-			break ;
-		if (is_delim(line, delimiter))
-		{
-			free(line);
+			if (g_signal_received == SIGINT)
+				status = -1;
 			break ;
 		}
 		write(fd, line, ft_strlen(line));
 		write(fd, "\n", 1);
 		free(line);
+		line = NULL;
 	}
+	if (line)
+		free(line);
 	setup_signals();
 	return (status);
 }

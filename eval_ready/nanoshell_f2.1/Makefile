@@ -17,7 +17,7 @@ libft:
 	@echo "$(BLUE)Compiling libft...$(RESET)"
 	@make -C $(LIBFT_DIR)
 
-$(NAME): $(OBJS) $(LIBFT_A)
+$(NAME): $(OBJS) $(LIBFT_A) Makefile includes/nanoshell.h
 	@echo "$(BLUE)Linking $(NAME)...$(RESET)"
 	@$(CC) $(CFLAGS) $(OBJS) -L$(LIBFT_DIR) -lft $(LDLIBS) -o $(NAME)
 	@echo "$(GREEN)✓ $(NAME) compiled successfully!$(RESET)"

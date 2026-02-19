@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelona.co  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/04 15:22:27 by jadelgad          #+#    #+#             */
-/*   Updated: 2026/02/04 15:22:29 by jadelgad         ###   ########.fr       */
+/*   Updated: 2026/02/19 17:18:29 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,12 +28,6 @@ static void	signal_handler(int signum)
 	}
 	g_signal_received = signum;
 }
-
-/*
-"Como readline es una función bloqueante, uso ioctl para simular un 'Enter' cuando llega un SIGINT.
- Esto despierta a readline inmediatamente, permitiendo que la shell recupere el control sin que el 
- usuario tenga que pulsar ninguna tecla extra."
-*/
 
 void	signal_handler_heredoc(int signum)
 {

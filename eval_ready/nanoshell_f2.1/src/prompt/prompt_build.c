@@ -6,7 +6,7 @@
 /*   By: jadelgad <jadelgad@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/08 15:51:26 by jadelgad          #+#    #+#             */
-/*   Updated: 2025/11/12 15:09:49 by jadelgad         ###   ########.fr       */
+/*   Updated: 2026/02/19 14:41:41 by alemonto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,13 +107,11 @@ char	*build_prompt(t_data *data)
 
 	if (prompt_build_parts(data, &userhost, &shortcwd) == -1)
 		return (NULL);
-
 	parts[0] = userhost;
 	parts[1] = ":";
 	parts[2] = shortcwd;
 	parts[3] = "$> ";
 	parts[4] = NULL;
-
 	res = join_parts(parts, 4);
 	free(userhost);
 	free(shortcwd);
