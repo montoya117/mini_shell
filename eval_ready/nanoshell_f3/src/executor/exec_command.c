@@ -56,10 +56,16 @@ void	exec_child(t_ast *node, t_data *data)
 	reset_sig_in_child();
 	data->pid = 1;
 	if (apply_all_redirections(node) == -1)
+	{
+		rl_clear_history();
 		exit(1);
+	}
 	cmd = get_core_node(node);
 	if (!cmd || !cmd->argv || !cmd->argv[0])
+	{
+		rl_clear_history();
 		exit(0);
+	}
 	env = prepare_env(cmd, data);
 	if (is_builtin(cmd->argv[0]))
 		exec_child_builtin(cmd, data, env);
@@ -69,6 +75,7 @@ void	exec_child(t_ast *node, t_data *data)
 		bash_style_error(cmd->argv[0], "command not found");
 		if (env != data->envp)
 			free_env(env);
+		rl_clear_history();
 		exit(127);
 	}
 	execve(path, cmd->argv, env);

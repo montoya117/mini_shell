@@ -20,6 +20,7 @@ void	exec_child_builtin(t_ast *node, t_data *data, char **env)
 	status = call_builtin(node->argv, data);
 	if (env != data->envp)
 		free_env(env);
+	rl_clear_history();
 	exit(status);
 }
 
@@ -75,5 +76,6 @@ void	handle_exec_error(char *cmd, char *path, char **env, t_data *data)
 		free(path);
 	if (env != data->envp)
 		free_env(env);
+	rl_clear_history();
 	exit(exit_code);
 }
